@@ -1,1 +1,27 @@
+# Python
 venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment variables
+.env
+.env.*
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Alembic
+# Don't ignore alembic/ folder itself, just temp files
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

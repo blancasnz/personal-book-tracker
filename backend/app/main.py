@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import get_db, Base, engine
 from app.models import Book, BookList
+from app.routers import books, lists
 
 # Create tables (in production, use Alembic migrations)
 Base.metadata.create_all(bind=engine)
@@ -17,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(books.router)
+app.include_router(lists.router)
 
 
 @app.get("/")
