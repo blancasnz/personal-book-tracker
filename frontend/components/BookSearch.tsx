@@ -3,26 +3,27 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { searchExternalBooks, addExternalBookToDb } from '@/lib/api';
-import { BookCreate } from '@/types';
+import { BookCreate, Book } from '@/types';
+import AddToListModal from './lists/AddToListModal';
 
 export default function BookSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const queryClient = useQueryClient();
 
-  // Search query with manual trigger
   const { data: searchResults, isLoading, error } = useQuery({
     queryKey: ['search', debouncedQuery],
     queryFn: () => searchExternalBooks(debouncedQuery),
     enabled: debouncedQuery.length > 0,
   });
 
-  // Mutation to add book to database
   const addBookMutation = useMutation({
     mutationFn: (book: BookCreate) => addExternalBookToDb(book),
-    onSuccess: () => {
+    onSuccess: (addedBook) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-      alert('Book added to your library!');
+      // Open modal to add to list
+      setSelectedBook(addedBook);
     },
     onError: (error) => {
       console.error('Error adding book:', error);
@@ -81,7 +82,6 @@ export default function BookSearch() {
                 key={index}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
               >
-                {/* Book Cover */}
                 {book.cover_url && (
                   <img
                     src={book.cover_url}
@@ -90,7 +90,6 @@ export default function BookSearch() {
                   />
                 )}
 
-                {/* Book Info */}
                 <h3 className="font-semibold text-lg mb-1 line-clamp-2">
                   {book.title}
                 </h3>
@@ -108,7 +107,6 @@ export default function BookSearch() {
                   </p>
                 )}
 
-                {/* Add Button */}
                 <button
                   onClick={() => handleAddBook(book)}
                   disabled={addBookMutation.isPending}
@@ -127,6 +125,15 @@ export default function BookSearch() {
         <div className="text-center py-12 text-gray-500">
           No books found for "{debouncedQuery}". Try a different search term.
         </div>
+      )}
+
+      {/* Add to List Modal */}
+      {selectedBook && (
+        <AddToListModal
+          book={selectedBook}
+          isOpen={!!selectedBook}
+          onClose={() => setSelectedBook(null)}
+        />
       )}
     </div>
   );
