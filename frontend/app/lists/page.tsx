@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getLists } from '@/lib/api';
 import ListCard from '@/components/lists/ListCard';
 import CreateListModal from '@/components/lists/CreateListModal';
+import { ListCardSkeleton } from '@/components/ui/Skeleton';
 import Link from 'next/link';
 
 export default function ListsPage() {
@@ -40,10 +41,12 @@ export default function ListsPage() {
           </div>
         </div>
 
-        {/* Loading State */}
+        {/* Loading State with Skeletons */}
         {isLoading && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading your lists...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <ListCardSkeleton key={i} />
+            ))}
           </div>
         )}
 
@@ -76,7 +79,6 @@ export default function ListsPage() {
           </div>
         )}
 
-        {/* Create Modal */}
         <CreateListModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

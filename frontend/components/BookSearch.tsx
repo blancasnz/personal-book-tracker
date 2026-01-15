@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { searchExternalBooks, addExternalBookToDb } from '@/lib/api';
 import { BookCreate, Book } from '@/types';
 import AddToListModal from './lists/AddToListModal';
+import { BookCardSkeleton } from './ui/Skeleton';
+import toast from 'react-hot-toast';
 
 export default function BookSearch() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,12 +24,12 @@ export default function BookSearch() {
     mutationFn: (book: BookCreate) => addExternalBookToDb(book),
     onSuccess: (addedBook) => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-      // Open modal to add to list
       setSelectedBook(addedBook);
+      toast.success('Book added! Now add it to a list.');
     },
     onError: (error) => {
       console.error('Error adding book:', error);
-      alert('Failed to add book');
+      toast.error('Failed to add book');
     },
   });
 
@@ -69,8 +71,17 @@ export default function BookSearch() {
         </div>
       )}
 
+      {/* Loading Skeletons */}
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <BookCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
       {/* Results */}
-      {searchResults && searchResults.results && (
+      {searchResults && searchResults.results && !isLoading && (
         <div className="space-y-4">
           <p className="text-gray-600">
             Found {searchResults.count} results for "{searchResults.query}"
@@ -127,7 +138,6 @@ export default function BookSearch() {
         </div>
       )}
 
-      {/* Add to List Modal */}
       {selectedBook && (
         <AddToListModal
           book={selectedBook}

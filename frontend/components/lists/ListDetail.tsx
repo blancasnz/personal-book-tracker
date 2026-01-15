@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getList, removeBookFromList, getBooks } from '@/lib/api';
+import { getList, removeBookFromList } from '@/lib/api';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 interface ListDetailProps {
   listId: number;
@@ -21,10 +21,11 @@ export default function ListDetail({ listId }: ListDetailProps) {
     mutationFn: (bookId: number) => removeBookFromList(listId, bookId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['list', listId] });
+      toast.success('Book removed from list');
     },
     onError: (error) => {
       console.error('Error removing book:', error);
-      alert('Failed to remove book from list');
+      toast.error('Failed to remove book from list');
     },
   });
 
@@ -72,7 +73,6 @@ export default function ListDetail({ listId }: ListDetailProps) {
               key={item.id}
               className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
             >
-              {/* Book Cover */}
               {item.book.cover_url && (
                 <img
                   src={item.book.cover_url}
@@ -81,7 +81,6 @@ export default function ListDetail({ listId }: ListDetailProps) {
                 />
               )}
 
-              {/* Book Info */}
               <h3 className="font-semibold text-lg mb-1 line-clamp-2">
                 {item.book.title}
               </h3>
@@ -93,19 +92,16 @@ export default function ListDetail({ listId }: ListDetailProps) {
                 </p>
               )}
 
-              {/* Notes */}
               {item.notes && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
                   <p className="text-sm text-gray-700 italic">{item.notes}</p>
                 </div>
               )}
 
-              {/* Added Date */}
               <p className="text-xs text-gray-500 mb-3">
                 Added {new Date(item.added_at).toLocaleDateString()}
               </p>
 
-              {/* Remove Button */}
               <button
                 onClick={() => handleRemoveBook(item.book.id, item.book.title)}
                 disabled={removeBookMutation.isPending}

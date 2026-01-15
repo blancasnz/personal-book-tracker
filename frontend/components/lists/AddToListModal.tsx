@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getLists, addBookToList } from '@/lib/api';
 import { Book } from '@/types';
+import toast from 'react-hot-toast';
 
 interface AddToListModalProps {
   book: Book;
@@ -36,11 +37,11 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
       setSelectedListId(null);
       setNotes('');
       onClose();
-      alert('Book added to list!');
+      toast.success('Book added to list!');
     },
     onError: (error) => {
       console.error('Error adding book to list:', error);
-      alert('Failed to add book to list');
+      toast.error('Failed to add book to list');
     },
   });
 

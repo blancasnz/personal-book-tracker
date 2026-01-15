@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BookListSummary } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteList } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 interface ListCardProps {
   list: BookListSummary;
@@ -16,15 +17,16 @@ export default function ListCard({ list }: ListCardProps) {
     mutationFn: () => deleteList(list.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lists'] });
+      toast.success('List deleted');
     },
     onError: (error) => {
       console.error('Error deleting list:', error);
-      alert('Failed to delete list');
+      toast.error('Failed to delete list');
     },
   });
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation to list detail
+    e.preventDefault();
     if (confirm(`Are you sure you want to delete "${list.name}"?`)) {
       deleteMutation.mutate();
     }
