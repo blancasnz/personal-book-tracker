@@ -10,6 +10,9 @@ import { useState } from "react";
 import UpdateStatusModal from "./UpdateStatusModal";
 import { Book, BookListItem } from "@/types";
 import BookDetailModal from "../BookDetailModal";
+import StarRating from "../ui/StarRating";
+import { updateBookInList } from "@/lib/api";
+import EditListModal from "./EditListModal";
 
 interface ListDetailProps {
   listId: number;
@@ -20,6 +23,8 @@ export default function ListDetail({ listId }: ListDetailProps) {
   const [selectedItem, setSelectedItem] = useState<BookListItem | null>(null);
   const [selectedBookForDetail, setSelectedBookForDetail] =
     useState<Book | null>(null);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const {
     data: list,
@@ -68,14 +73,40 @@ export default function ListDetail({ listId }: ListDetailProps) {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">{list.name}</h1>
-        {list.description && (
-          <p className="text-gray-600 mb-3">{list.description}</p>
-        )}
-        <p className="text-sm text-gray-500">
-          Created {new Date(list.created_at).toLocaleDateString()} •{" "}
-          {list.items.length} {list.items.length === 1 ? "book" : "books"}
-        </p>
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold mb-2">{list.name}</h1>
+
+            {/* Description or Add Description prompt */}
+            {list.description ? (
+              <p className="text-gray-600 mb-3">{list.description}</p>
+            ) : (
+              list.is_default === 0 && (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="text-sm text-blue-600 hover:text-blue-800 mb-3"
+                >
+                  + Add description
+                </button>
+              )
+            )}
+
+            <p className="text-sm text-gray-500">
+              Created {new Date(list.created_at).toLocaleDateString()} •{" "}
+              {list.items.length} {list.items.length === 1 ? "book" : "books"}
+            </p>
+          </div>
+
+          {/* Edit Button - Only for non-default lists */}
+          {list.is_default === 0 && (
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+            >
+              ✏️ Edit List details
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Books Grid */}
@@ -116,6 +147,30 @@ export default function ListDetail({ listId }: ListDetailProps) {
                 </div>
 
                 <p className="text-gray-600 text-sm mb-2">{item.book.author}</p>
+
+                <div className="mb-2" onClick={(e) => e.stopPropagation()}>
+                  <StarRating
+                    rating={item.rating || 0}
+                    onRate={(newRating) => {
+                      // Update rating directly without modal
+                      updateBookInList(item.book_list_id, item.book.id, {
+                        rating: newRating > 0 ? newRating : undefined,
+                      })
+                        .then(() => {
+                          queryClient.invalidateQueries({
+                            queryKey: ["list", listId],
+                          });
+                          toast.success(
+                            newRating > 0 ? "Rating updated!" : "Rating removed"
+                          );
+                        })
+                        .catch(() => {
+                          toast.error("Failed to update rating");
+                        });
+                    }}
+                    size="sm"
+                  />
+                </div>
 
                 {item.book.published_year && (
                   <p className="text-gray-500 text-xs mb-2">
@@ -172,6 +227,13 @@ export default function ListDetail({ listId }: ListDetailProps) {
           book={selectedBookForDetail}
           isOpen={!!selectedBookForDetail}
           onClose={() => setSelectedBookForDetail(null)}
+        />
+      )}
+      {isEditModalOpen && (
+        <EditListModal
+          list={list}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
         />
       )}
     </div>

@@ -2,52 +2,61 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createList } from "@/lib/api";
-import { BookListCreate } from "@/types";
+import { updateList } from "@/lib/api";
+import { BookList } from "@/types";
+import toast from "react-hot-toast";
 
-interface CreateListModalProps {
+interface EditListModalProps {
+  list: BookList;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function CreateListModal({
+export default function EditListModal({
+  list,
   isOpen,
   onClose,
-}: CreateListModalProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+}: EditListModalProps) {
+  const [name, setName] = useState(list.name);
+  const [description, setDescription] = useState(list.description || "");
   const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
-    mutationFn: (newList: BookListCreate) => createList(newList),
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      updateList(list.id, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+      }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["list", list.id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
-      setName("");
-      setDescription("");
       onClose();
+      toast.success("List updated!");
     },
-    onError: (error) => {
-      console.error("Error creating list:", error);
-      alert("Failed to create list");
+    onError: () => {
+      toast.error("Failed to update list");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      createMutation.mutate({
-        name: name.trim(),
-        description: description.trim() || undefined,
-      });
+      updateMutation.mutate();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-2xl font-bold mb-4">Create New List</h2>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-2xl font-bold mb-4">Edit List</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -91,16 +100,16 @@ export default function CreateListModal({
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-              disabled={createMutation.isPending}
+              disabled={updateMutation.isPending}
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || createMutation.isPending}
+              disabled={!name.trim() || updateMutation.isPending}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {createMutation.isPending ? "Creating..." : "Create List"}
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

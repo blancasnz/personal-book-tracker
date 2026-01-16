@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getLists, addBookToList } from "@/lib/api";
 import { Book, ReadingStatus } from "@/types";
 import toast from "react-hot-toast";
+import StarRating from "../ui/StarRating";
 
 interface AddToListModalProps {
   book: Book;
@@ -19,6 +20,8 @@ export default function AddToListModal({
 }: AddToListModalProps) {
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
+  const [rating, setRating] = useState<number>(0);
+
   const queryClient = useQueryClient();
 
   const { data: lists, isLoading } = useQuery({
@@ -55,6 +58,7 @@ export default function AddToListModal({
         book_id: book.id,
         notes: notes.trim() || undefined,
         status: status,
+        rating: rating > 0 ? rating : undefined,
       });
     },
     onSuccess: () => {
@@ -63,6 +67,7 @@ export default function AddToListModal({
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
       setSelectedListId(null);
       setNotes("");
+      setRating(0);
       onClose();
       toast.success("Book added to list!");
     },
@@ -153,6 +158,14 @@ export default function AddToListModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
             />
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Rating (optional)
+            </label>
+            <StarRating rating={rating} onRate={setRating} size="lg" />
           </div>
 
           {/* Actions */}
