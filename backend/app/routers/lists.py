@@ -1,14 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from typing import List
 
 from app.database import get_db
+from app.models.book_list import BookListItem
 from app.schemas.book_list import (
     BookList,
     BookListCreate,
     BookListUpdate,
     BookListSummary,
     BookListItemCreate,
+    BookListItemUpdate,
+    ReadingStatus,
 )
 from app.crud import book_list as crud_list
 
@@ -21,9 +25,27 @@ def get_lists(
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    """Get all lists with item counts"""
+    """Get all lists with item counts (default lists first)"""
     lists = crud_list.get_book_lists_summary(db, skip=skip, limit=limit)
     return lists
+
+
+@router.get("/currently-reading")
+def get_currently_reading_books(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """Get all books currently being read"""
+    items = (
+        db.query(BookListItem)
+        .options(joinedload(BookListItem.book))
+        .filter(BookListItem.status == ReadingStatus.READING)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return items
 
 
 @router.get("/{list_id}", response_model=BookList)
@@ -54,10 +76,12 @@ def update_list(
 
 @router.delete("/{list_id}", status_code=204)
 def delete_list(list_id: int, db: Session = Depends(get_db)):
-    """Delete a list"""
+    """Delete a list (cannot delete default lists)"""
     success = crud_list.delete_book_list(db, list_id=list_id)
     if not success:
-        raise HTTPException(status_code=404, detail="List not found")
+        raise HTTPException(
+            status_code=404, detail="List not found or cannot delete default list"
+        )
     return None
 
 
@@ -72,6 +96,22 @@ def add_book_to_list(
     return result
 
 
+@router.patch("/{list_id}/books/{book_id}")
+def update_book_in_list(
+    list_id: int,
+    book_id: int,
+    item_update: BookListItemUpdate,
+    db: Session = Depends(get_db),
+):
+    """Update a book's status, rating, or notes in a list"""
+    result = crud_list.update_book_list_item(
+        db, list_id=list_id, book_id=book_id, item_update=item_update
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Book not in list")
+    return result
+
+
 @router.delete("/{list_id}/books/{book_id}", status_code=204)
 def remove_book_from_list(list_id: int, book_id: int, db: Session = Depends(get_db)):
     """Remove a book from a list"""
@@ -81,14 +121,14 @@ def remove_book_from_list(list_id: int, book_id: int, db: Session = Depends(get_
     return None
 
 
-@router.patch("/{list_id}/books/{book_id}/notes")
-def update_book_notes(
-    list_id: int, book_id: int, notes: str, db: Session = Depends(get_db)
+@router.post("/{list_id}/books/{book_id}/move-status")
+def move_book_status(
+    list_id: int, book_id: int, new_status: ReadingStatus, db: Session = Depends(get_db)
 ):
-    """Update notes for a book in a list"""
-    result = crud_list.update_list_item_notes(
-        db, list_id=list_id, book_id=book_id, notes=notes
-    )
+    """Move a book to the appropriate default list based on status change"""
+    result = crud_list.move_book_to_status_list(db, book_id, list_id, new_status)
     if not result:
-        raise HTTPException(status_code=404, detail="Book not in list")
+        raise HTTPException(
+            status_code=404, detail="Book not found or target list missing"
+        )
     return result

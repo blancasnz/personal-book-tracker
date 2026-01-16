@@ -1,24 +1,58 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { checkHealth, testDatabase } from '@/lib/api';
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { getCurrentlyReading } from "@/lib/api";
 
 export default function Home() {
-  const healthQuery = useQuery({
-    queryKey: ['health'],
-    queryFn: checkHealth,
-  });
-
-  const dbQuery = useQuery({
-    queryKey: ['database'],
-    queryFn: testDatabase,
+  const currentlyReadingQuery = useQuery({
+    queryKey: ["currently-reading"],
+    queryFn: getCurrentlyReading,
   });
 
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">Book Tracker</h1>
+
+        {/* Currently Reading Section */}
+        {currentlyReadingQuery.data &&
+          currentlyReadingQuery.data.length > 0 && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+              <h2 className="text-2xl font-semibold mb-4">
+                📖 Currently Reading
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentlyReadingQuery.data.slice(0, 4).map((item: any) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-3 bg-white p-3 rounded-lg"
+                  >
+                    {item.book.cover_url && (
+                      <img
+                        src={item.book.cover_url}
+                        alt={item.book.title}
+                        className="w-16 h-24 object-contain"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm line-clamp-2">
+                        {item.book.title}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {item.book.author}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {currentlyReadingQuery.data.length > 4 && (
+                <p className="text-sm text-gray-600 mt-3">
+                  And {currentlyReadingQuery.data.length - 4} more...
+                </p>
+              )}
+            </div>
+          )}
 
         {/* Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -27,7 +61,9 @@ export default function Home() {
             className="p-6 border-2 border-blue-500 rounded-lg hover:bg-blue-50 transition-colors"
           >
             <h2 className="text-2xl font-semibold mb-2">🔍 Search Books</h2>
-            <p className="text-gray-600">Find books and add them to your library</p>
+            <p className="text-gray-600">
+              Find books and add them to your library
+            </p>
           </Link>
 
           <Link
@@ -37,35 +73,6 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-2">📋 My Lists</h2>
             <p className="text-gray-600">Manage your reading lists</p>
           </Link>
-        </div>
-
-        {/* Status */}
-        <div className="space-y-4">
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">API Status:</h2>
-            {healthQuery.isLoading && <p>Checking...</p>}
-            {healthQuery.error && (
-              <p className="text-red-600">Error: {String(healthQuery.error)}</p>
-            )}
-            {healthQuery.data && (
-              <p className="text-green-600">✓ API: {healthQuery.data.status}</p>
-            )}
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">Database Status:</h2>
-            {dbQuery.isLoading && <p>Checking...</p>}
-            {dbQuery.error && (
-              <p className="text-red-600">Error: {String(dbQuery.error)}</p>
-            )}
-            {dbQuery.data && (
-              <div className="text-green-600">
-                <p>✓ Database: {dbQuery.data.database}</p>
-                <p>📚 Books: {dbQuery.data.books}</p>
-                <p>📋 Lists: {dbQuery.data.lists}</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </main>

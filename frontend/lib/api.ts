@@ -1,5 +1,15 @@
 import axios from 'axios';
-import { Book, BookCreate, BookList, BookListCreate, BookListSummary, BookListItemCreate } from '@/types';
+import { 
+  Book, 
+  BookCreate, 
+  BookList, 
+  BookListCreate, 
+  BookListUpdate,
+  BookListSummary, 
+  BookListItemCreate,
+  BookListItemUpdate 
+} from '@/types';
+import { ReadingStatus } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -9,17 +19,6 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Health check function to test connection
-export const checkHealth = async () => {
-  const response = await apiClient.get('/health');
-  return response.data;
-};
-
-export const testDatabase = async () => {
-  const response = await apiClient.get('/test-db');
-  return response.data;
-};
 
 // Search
 export const searchExternalBooks = async (query: string, maxResults: number = 20) => {
@@ -63,8 +62,22 @@ export const createList = async (list: BookListCreate): Promise<BookList> => {
   return response.data;
 };
 
+export const updateList = async (listId: number, list: BookListUpdate): Promise<BookList> => {
+  const response = await apiClient.patch(`/lists/${listId}`, list);
+  return response.data;
+};
+
 export const addBookToList = async (listId: number, item: BookListItemCreate) => {
   const response = await apiClient.post(`/lists/${listId}/books`, item);
+  return response.data;
+};
+
+export const updateBookInList = async (
+  listId: number, 
+  bookId: number, 
+  update: BookListItemUpdate
+) => {
+  const response = await apiClient.patch(`/lists/${listId}/books/${bookId}`, update);
   return response.data;
 };
 
@@ -74,4 +87,20 @@ export const removeBookFromList = async (listId: number, bookId: number) => {
 
 export const deleteList = async (listId: number) => {
   await apiClient.delete(`/lists/${listId}`);
+};
+
+export const getCurrentlyReading = async () => {
+  const response = await apiClient.get('/lists/currently-reading');
+  return response.data;
+};
+
+export const moveBookStatus = async (
+  listId: number, 
+  bookId: number, 
+  newStatus: ReadingStatus
+) => {
+  const response = await apiClient.post(
+    `/lists/${listId}/books/${bookId}/move-status?new_status=${newStatus}`
+  );
+  return response.data;
 };

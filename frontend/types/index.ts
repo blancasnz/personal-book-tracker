@@ -1,8 +1,4 @@
-export interface HealthCheck {
-  status: string;
-}
-
-// Book types
+// Book types (unchanged)
 export interface Book {
   id: number;
   title: string;
@@ -34,6 +30,9 @@ export interface BookUpdate {
   page_count?: number;
 }
 
+// Reading status
+export type ReadingStatus = 'to_read' | 'reading' | 'finished';
+
 // List types
 export interface BookListItem {
   id: number;
@@ -41,6 +40,9 @@ export interface BookListItem {
   book_id: number;
   added_at: string;
   notes?: string | null;
+  status: ReadingStatus;
+  rating?: number | null;
+  is_favorite: number;
   book: Book;
 }
 
@@ -48,6 +50,7 @@ export interface BookList {
   id: number;
   name: string;
   description?: string | null;
+  is_default: number;
   created_at: string;
   updated_at?: string | null;
   items: BookListItem[];
@@ -57,6 +60,7 @@ export interface BookListSummary {
   id: number;
   name: string;
   description?: string | null;
+  is_default: number;
   created_at: string;
   updated_at?: string | null;
   item_count: number;
@@ -75,4 +79,14 @@ export interface BookListUpdate {
 export interface BookListItemCreate {
   book_id: number;
   notes?: string;
+  status?: ReadingStatus;
+  rating?: number;
+  is_favorite?: number;
+}
+
+export interface BookListItemUpdate {
+  notes?: string;
+  status?: ReadingStatus;
+  rating?: number;
+  is_favorite?: number;
 }

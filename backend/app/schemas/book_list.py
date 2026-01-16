@@ -2,26 +2,43 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from app.schemas.book import Book
+from enum import Enum
+
+
+class ReadingStatus(str, Enum):
+    TO_READ = "to_read"
+    READING = "reading"
+    FINISHED = "finished"
 
 
 # BookListItem schemas
 class BookListItemBase(BaseModel):
     book_id: int
     notes: Optional[str] = None
+    status: ReadingStatus = ReadingStatus.TO_READ
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    is_favorite: int = 0
 
 
 class BookListItemCreate(BookListItemBase):
     pass
 
 
+class BookListItemUpdate(BaseModel):
+    notes: Optional[str] = None
+    status: Optional[ReadingStatus] = None
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    is_favorite: Optional[int] = None
+
+
 class BookListItem(BookListItemBase):
     id: int
     book_list_id: int
     added_at: datetime
-    book: Book  # Include full book details
+    book: Book
 
     class Config:
-        from_attributes = True  # allows to read/return SQLAlchemy objects, not needed for creating or updating
+        from_attributes = True
 
 
 # BookList schemas
@@ -41,17 +58,18 @@ class BookListUpdate(BaseModel):
 
 class BookList(BookListBase):
     id: int
+    is_default: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    items: List[BookListItem] = []  # Include all books in the list
+    items: List[BookListItem] = []
 
     class Config:
         from_attributes = True
 
 
-# Simplified version without nested items (for list views)
 class BookListSummary(BookListBase):
     id: int
+    is_default: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     item_count: int = 0

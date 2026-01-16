@@ -7,11 +7,13 @@ import { BookCreate, Book } from '@/types';
 import AddToListModal from './lists/AddToListModal';
 import { BookCardSkeleton } from './ui/Skeleton';
 import toast from 'react-hot-toast';
+import BookDetailModal from './BookDetailModal';
 
 export default function BookSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedBookForDetail, setSelectedBookForDetail] = useState<Book | null>(null);
   const queryClient = useQueryClient();
 
   const { data: searchResults, isLoading, error } = useQuery({
@@ -93,6 +95,10 @@ export default function BookSearch() {
                 key={index}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
               >
+                <div 
+        onClick={() => setSelectedBookForDetail(book)}
+        className="cursor-pointer"
+      >
                 {book.cover_url && (
                   <img
                     src={book.cover_url}
@@ -117,9 +123,13 @@ export default function BookSearch() {
                     {book.description}
                   </p>
                 )}
-
+                </div>
+                {/* Button NOT clickable for details - only adds to library */}
                 <button
-                  onClick={() => handleAddBook(book)}
+                  onClick={(e) => {
+          e.stopPropagation(); // Prevent opening modal
+          handleAddBook(book);
+        }}
                   disabled={addBookMutation.isPending}
                   className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 text-sm"
                 >
@@ -143,6 +153,13 @@ export default function BookSearch() {
           book={selectedBook}
           isOpen={!!selectedBook}
           onClose={() => setSelectedBook(null)}
+        />
+      )}
+      {selectedBookForDetail && (
+        <BookDetailModal
+          book={selectedBookForDetail}
+          isOpen={!!selectedBookForDetail}
+          onClose={() => setSelectedBookForDetail(null)}
         />
       )}
     </div>

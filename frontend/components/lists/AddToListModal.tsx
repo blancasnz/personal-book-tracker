@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getLists, addBookToList } from '@/lib/api';
-import { Book } from '@/types';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getLists, addBookToList } from "@/lib/api";
+import { Book, ReadingStatus } from "@/types";
+import toast from "react-hot-toast";
 
 interface AddToListModalProps {
   book: Book;
@@ -12,36 +12,63 @@ interface AddToListModalProps {
   onClose: () => void;
 }
 
-export default function AddToListModal({ book, isOpen, onClose }: AddToListModalProps) {
+export default function AddToListModal({
+  book,
+  isOpen,
+  onClose,
+}: AddToListModalProps) {
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
 
   const { data: lists, isLoading } = useQuery({
-    queryKey: ['lists'],
+    queryKey: ["lists"],
     queryFn: getLists,
     enabled: isOpen,
   });
 
+  // Auto-detect status based on list name
+  const getStatusForList = (listName: string): ReadingStatus => {
+    const lowerName = listName.toLowerCase();
+    if (lowerName.includes("reading") && lowerName.includes("current")) {
+      return "reading";
+    }
+    if (lowerName.includes("finished")) {
+      return "finished";
+    }
+    if (lowerName.includes("want") || lowerName.includes("to read")) {
+      return "to_read";
+    }
+    return "to_read";
+  };
+
   const addToListMutation = useMutation({
     mutationFn: () => {
-      if (!selectedListId) throw new Error('No list selected');
+      if (!selectedListId) throw new Error("No list selected");
+
+      const selectedList = lists?.find((l) => l.id === selectedListId);
+      const status = selectedList
+        ? getStatusForList(selectedList.name)
+        : "to_read";
+
       return addBookToList(selectedListId, {
         book_id: book.id,
         notes: notes.trim() || undefined,
+        status: status,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lists'] });
-      queryClient.invalidateQueries({ queryKey: ['list'] });
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
       setSelectedListId(null);
-      setNotes('');
+      setNotes("");
       onClose();
-      toast.success('Book added to list!');
+      toast.success("Book added to list!");
     },
     onError: (error) => {
-      console.error('Error adding book to list:', error);
-      toast.error('Failed to add book to list');
+      console.error("Error adding book to list:", error);
+      toast.error("Failed to add book to list");
     },
   });
 
@@ -65,6 +92,7 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* List Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select List *
@@ -87,7 +115,14 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
                       className="mr-3"
                     />
                     <div>
-                      <p className="font-medium">{list.name}</p>
+                      <p className="font-medium">
+                        {list.name}
+                        {list.is_default === 1 && (
+                          <span className="ml-2 text-xs text-gray-500">
+                            (Default)
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-500">
                         {list.item_count} books
                       </p>
@@ -102,8 +137,12 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
             )}
           </div>
 
+          {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notes (optional)
             </label>
             <textarea
@@ -116,6 +155,7 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
             />
           </div>
 
+          {/* Actions */}
           <div className="flex gap-3 justify-end">
             <button
               type="button"
@@ -130,7 +170,7 @@ export default function AddToListModal({ book, isOpen, onClose }: AddToListModal
               disabled={!selectedListId || addToListMutation.isPending}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {addToListMutation.isPending ? 'Adding...' : 'Add to List'}
+              {addToListMutation.isPending ? "Adding..." : "Add to List"}
             </button>
           </div>
         </form>
