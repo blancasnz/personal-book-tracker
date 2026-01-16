@@ -2,13 +2,15 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from app.schemas.book import Book
-from enum import Enum
+
+# from enum import Enum
+from app.models.book_list import ReadingStatus
 
 
-class ReadingStatus(str, Enum):
-    TO_READ = "to_read"
-    READING = "reading"
-    FINISHED = "finished"
+# class ReadingStatus(str, Enum):
+#     TO_READ = "to_read"
+#     READING = "reading"
+#     FINISHED = "finished"
 
 
 # BookListItem schemas

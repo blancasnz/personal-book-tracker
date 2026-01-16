@@ -104,3 +104,22 @@ export const moveBookStatus = async (
   );
   return response.data;
 };
+
+export const getRandomBook = async (
+  listId: number,
+  filters?: {
+    status?: ReadingStatus;
+    max_pages?: number;
+    min_pages?: number;
+  }
+) => {
+  const params = new URLSearchParams();
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.max_pages) params.append('max_pages', filters.max_pages.toString());
+  if (filters?.min_pages) params.append('min_pages', filters.min_pages.toString());
+  
+  const response = await apiClient.get(
+    `/lists/${listId}/random${params.toString() ? `?${params.toString()}` : ''}`
+  );
+  return response.data;
+};

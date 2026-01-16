@@ -13,6 +13,7 @@ import BookDetailModal from "../BookDetailModal";
 import StarRating from "../ui/StarRating";
 import { updateBookInList } from "@/lib/api";
 import EditListModal from "./EditListModal";
+import RandomBookPicker from "./RandomBookPicker";
 
 interface ListDetailProps {
   listId: number;
@@ -25,6 +26,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
     useState<Book | null>(null);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
 
   const {
     data: list,
@@ -98,14 +100,25 @@ export default function ListDetail({ listId }: ListDetailProps) {
           </div>
 
           {/* Edit Button - Only for non-default lists */}
-          {list.is_default === 0 && (
+          <div className="flex gap-2">
+            {/* Random button for ALL lists */}
             <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+              onClick={() => setIsRandomPickerOpen(true)}
+              className="px-4 py-2 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors flex items-center gap-2"
             >
-              ✏️ Edit List details
+              🎲 Random Book
             </button>
-          )}
+
+            {/* Edit button only for non-default lists */}
+            {list.is_default === 0 && (
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+              >
+                ✏️ Edit List
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -234,6 +247,13 @@ export default function ListDetail({ listId }: ListDetailProps) {
           list={list}
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
+        />
+      )}
+      {isRandomPickerOpen && (
+        <RandomBookPicker
+          listId={listId}
+          isOpen={isRandomPickerOpen}
+          onClose={() => setIsRandomPickerOpen(false)}
         />
       )}
     </div>

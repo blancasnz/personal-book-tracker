@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
-from typing import List
+from typing import List, Optional
 
 from app.database import get_db
-from app.models.book_list import BookListItem
+from app.models.book_list import BookListItem, ReadingStatus
 from app.schemas.book_list import (
     BookList,
     BookListCreate,
@@ -12,7 +12,6 @@ from app.schemas.book_list import (
     BookListSummary,
     BookListItemCreate,
     BookListItemUpdate,
-    ReadingStatus,
 )
 from app.crud import book_list as crud_list
 
@@ -132,3 +131,28 @@ def move_book_status(
             status_code=404, detail="Book not found or target list missing"
         )
     return result
+
+
+@router.get("/{list_id}/random")
+def get_random_book(
+    list_id: int,
+    status: Optional[ReadingStatus] = Query(
+        None, description="Filter by reading status"
+    ),
+    max_pages: Optional[int] = Query(None, ge=1, description="Maximum page count"),
+    min_pages: Optional[int] = Query(None, ge=1, description="Minimum page count"),
+    db: Session = Depends(get_db),
+):
+    """Get a random book from the list with optional filters"""
+    book_list = crud_list.get_book_list(db, list_id=list_id)
+    if not book_list:
+        raise HTTPException(status_code=404, detail="List not found")
+
+    random_item = crud_list.get_random_book_from_list(
+        db, list_id, status=status, max_pages=max_pages, min_pages=min_pages
+    )
+
+    if not random_item:
+        raise HTTPException(status_code=404, detail="No books match the criteria")
+
+    return random_item

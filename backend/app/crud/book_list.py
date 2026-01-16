@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.models.book_list import BookList, BookListItem, ReadingStatus
+from app.models.book import Book as Book
 from app.schemas.book_list import (
     BookListCreate,
     BookListUpdate,
@@ -8,6 +9,7 @@ from app.schemas.book_list import (
     BookListItemUpdate,
 )
 from typing import List, Optional
+import random
 
 
 # BookList operations
@@ -289,3 +291,39 @@ def move_book_to_status_list(
         db.commit()
         db.refresh(new_item)
         return new_item
+
+
+def get_random_book_from_list(
+    db: Session,
+    list_id: int,
+    status: Optional[ReadingStatus] = None,
+    max_pages: Optional[int] = None,
+    min_pages: Optional[int] = None,
+) -> Optional[BookListItem]:
+    """
+    Get a random book from a list with optional filters
+    """
+    query = (
+        db.query(BookListItem)
+        .options(joinedload(BookListItem.book))
+        .filter(BookListItem.book_list_id == list_id)
+    )
+
+    # Apply filters
+    if status:
+        query = query.filter(BookListItem.status == status)
+
+    if max_pages:
+        query = query.join(BookListItem.book).filter(Book.page_count <= max_pages)
+
+    if min_pages:
+        query = query.join(BookListItem.book).filter(Book.page_count >= min_pages)
+
+    # Get all matching items
+    items = query.all()
+
+    if not items:
+        return None
+
+    # Return random item
+    return random.choice(items)
