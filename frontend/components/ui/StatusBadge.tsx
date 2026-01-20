@@ -27,19 +27,24 @@ export default function StatusBadge({ status, onClick }: StatusBadgeProps) {
   const { label, emoji, className } = config[status];
 
   return (
-    <span
+    <button
       onClick={(e) => {
         if (onClick) {
-          e.stopPropagation(); // Prevent triggering parent click handlers
+          e.stopPropagation();
           onClick(e);
         }
       }}
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${className} ${
-        onClick ? "cursor-pointer hover:opacity-80" : ""
+      disabled={!onClick}
+      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium ${className} ${
+        onClick
+          ? "cursor-pointer hover:opacity-80 hover:shadow-md transition-all border border-transparent hover:border-current"
+          : "cursor-default"
       }`}
+      title={onClick ? "Click to change status" : undefined}
     >
       <span>{emoji}</span>
       <span>{label}</span>
-    </span>
+      {onClick && <span className="text-[10px] ml-1">▼</span>}
+    </button>
   );
 }

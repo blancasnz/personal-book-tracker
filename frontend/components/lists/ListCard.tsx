@@ -35,35 +35,46 @@ export default function ListCard({ list }: ListCardProps) {
   return (
     <Link
       href={`/lists/${list.id}`}
-      className="block border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+      className="block group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     >
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="text-xl font-semibold">{list.name}</h3>
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+            {list.name}
+          </h3>
           {list.is_default === 1 && (
-            <span className="text-xs text-gray-500 italic">Default List</span>
+            <span className="inline-block mt-1 text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+              Default List
+            </span>
           )}
         </div>
-        {list.is_default === 0 && (
-          <button
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-            className="text-red-600 hover:text-red-800 text-sm disabled:text-gray-400"
-          >
-            {deleteMutation.isPending ? "Deleting..." : "Delete"}
-          </button>
-        )}
+        <div className="flex gap-2">
+          {list.is_default === 0 && (
+            <button
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="text-red-500 hover:text-red-700 text-sm font-medium disabled:text-gray-400 transition-colors"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </button>
+          )}
+        </div>
       </div>
 
       {list.description && (
-        <p className="text-gray-600 mb-3">{list.description}</p>
+        <p className="text-gray-600 mb-4 line-clamp-2">{list.description}</p>
       )}
 
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>
-          📚 {list.item_count} {list.item_count === 1 ? "book" : "books"}
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">📚</span>
+          <span className="font-semibold text-gray-900">
+            {list.item_count} {list.item_count === 1 ? "book" : "books"}
+          </span>
+        </div>
+        <span className="text-gray-500">
+          {new Date(list.created_at).toLocaleDateString()}
         </span>
-        <span>{new Date(list.created_at).toLocaleDateString()}</span>
       </div>
     </Link>
   );

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { moveBookStatus, updateBookInList, getLists } from "@/lib/api";
 import { BookListItem, ReadingStatus } from "@/types";
+import StarRating from "../ui/StarRating";
 import toast from "react-hot-toast";
-import { moveBookStatus } from "@/lib/api";
 
 interface UpdateStatusModalProps {
   item: BookListItem;
@@ -18,24 +19,58 @@ export default function UpdateStatusModal({
   onClose,
 }: UpdateStatusModalProps) {
   const [status, setStatus] = useState<ReadingStatus>(item.status);
+  const [rating, setRating] = useState<number>(0);
+  const [showRating, setShowRating] = useState(item.status === "finished");
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: () => moveBookStatus(item.book_list_id, item.book.id, status),
+    mutationFn: async () => {
+      // Move the book to new status list
+      await moveBookStatus(item.book_list_id, item.book.id, status);
+
+      // If finished and has rating, update rating separately
+      if (status === "finished" && rating > 0) {
+        // The moveBookStatus already moved it, now we just need to update the rating
+        // We need to find which list it's in now (the Finished list)
+        const allLists = await getLists();
+        const finishedList = allLists.find(
+          (list: any) => list.name === "Finished" && list.is_default === 1
+        );
+
+        if (finishedList) {
+          await updateBookInList(finishedList.id, item.book.id, { rating });
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
       onClose();
-      toast.success("Book moved to new list!");
+      toast.success("Status updated!");
     },
-    onError: () => {
-      toast.error("Failed to move book");
+    onError: (error) => {
+      console.error("Move status error:", error);
+      toast.error("Failed to update status");
     },
   });
 
+  const handleStatusClick = (newStatus: ReadingStatus) => {
+    setStatus(newStatus);
+    // Show rating input if selecting "finished"
+    if (newStatus === "finished") {
+      setShowRating(true);
+    } else {
+      setShowRating(false);
+      setRating(0);
+    }
+  };
+
   const handleSubmit = () => {
-    if (status !== item.status) {
+    if (
+      status !== item.status ||
+      (status === "finished" && rating !== (item.rating || 0))
+    ) {
       updateMutation.mutate();
     }
   };
@@ -78,7 +113,7 @@ export default function UpdateStatusModal({
           {statusOptions.map((option) => (
             <button
               key={option.value}
-              onClick={() => setStatus(option.value)}
+              onClick={() => handleStatusClick(option.value)}
               className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
                 status === option.value
                   ? `border-${option.color}-500 bg-${option.color}-50`
@@ -91,6 +126,23 @@ export default function UpdateStatusModal({
           ))}
         </div>
 
+        {/* Rating Section - Only show when "finished" is selected */}
+        {showRating && (
+          <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p className="text-sm font-medium text-gray-700 mb-3">
+              {rating > 0
+                ? "Update your rating:"
+                : "How would you rate this book?"}
+            </p>
+            <div className="flex justify-center">
+              <StarRating rating={rating} onRate={setRating} size="lg" />
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              {rating === 0 && "You can skip this and rate it later"}
+            </p>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -100,7 +152,10 @@ export default function UpdateStatusModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={updateMutation.isPending || status === item.status}
+            disabled={
+              updateMutation.isPending ||
+              (status === item.status && rating === (item.rating || 0))
+            }
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
           >
             {updateMutation.isPending ? "Updating..." : "Update"}

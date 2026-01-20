@@ -47,6 +47,54 @@ def get_currently_reading_books(
     return items
 
 
+@router.post("/", response_model=BookList, status_code=201)
+def create_list(book_list: BookListCreate, db: Session = Depends(get_db)):
+    """Create a new list"""
+    return crud_list.create_book_list(db, book_list=book_list)
+
+
+# MOVE THIS BEFORE /{list_id} routes
+@router.post("/{list_id}/books/{book_id}/move-status")
+def move_book_status(
+    list_id: int,
+    book_id: int,
+    new_status: ReadingStatus = Query(...),
+    db: Session = Depends(get_db),
+):
+    """Move a book to the appropriate default list based on status change"""
+    result = crud_list.move_book_to_status_list(db, book_id, list_id, new_status)
+    if not result:
+        raise HTTPException(
+            status_code=404, detail="Book not found or target list missing"
+        )
+    return result
+
+
+@router.get("/{list_id}/random")
+def get_random_book(
+    list_id: int,
+    status: Optional[ReadingStatus] = Query(
+        None, description="Filter by reading status"
+    ),
+    max_pages: Optional[int] = Query(None, ge=1, description="Maximum page count"),
+    min_pages: Optional[int] = Query(None, ge=1, description="Minimum page count"),
+    db: Session = Depends(get_db),
+):
+    """Get a random book from the list with optional filters"""
+    book_list = crud_list.get_book_list(db, list_id=list_id)
+    if not book_list:
+        raise HTTPException(status_code=404, detail="List not found")
+
+    random_item = crud_list.get_random_book_from_list(
+        db, list_id, status=status, max_pages=max_pages, min_pages=min_pages
+    )
+
+    if not random_item:
+        raise HTTPException(status_code=404, detail="No books match the criteria")
+
+    return random_item
+
+
 @router.get("/{list_id}", response_model=BookList)
 def get_list(
     list_id: int,
@@ -58,12 +106,6 @@ def get_list(
     if not book_list:
         raise HTTPException(status_code=404, detail="List not found")
     return book_list
-
-
-@router.post("/", response_model=BookList, status_code=201)
-def create_list(book_list: BookListCreate, db: Session = Depends(get_db)):
-    """Create a new list"""
-    return crud_list.create_book_list(db, book_list=book_list)
 
 
 @router.patch("/{list_id}", response_model=BookList)
@@ -122,41 +164,3 @@ def remove_book_from_list(list_id: int, book_id: int, db: Session = Depends(get_
     if not success:
         raise HTTPException(status_code=404, detail="Book not in list")
     return None
-
-
-@router.post("/{list_id}/books/{book_id}/move-status")
-def move_book_status(
-    list_id: int, book_id: int, new_status: ReadingStatus, db: Session = Depends(get_db)
-):
-    """Move a book to the appropriate default list based on status change"""
-    result = crud_list.move_book_to_status_list(db, book_id, list_id, new_status)
-    if not result:
-        raise HTTPException(
-            status_code=404, detail="Book not found or target list missing"
-        )
-    return result
-
-
-@router.get("/{list_id}/random")
-def get_random_book(
-    list_id: int,
-    status: Optional[ReadingStatus] = Query(
-        None, description="Filter by reading status"
-    ),
-    max_pages: Optional[int] = Query(None, ge=1, description="Maximum page count"),
-    min_pages: Optional[int] = Query(None, ge=1, description="Minimum page count"),
-    db: Session = Depends(get_db),
-):
-    """Get a random book from the list with optional filters"""
-    book_list = crud_list.get_book_list(db, list_id=list_id)
-    if not book_list:
-        raise HTTPException(status_code=404, detail="List not found")
-
-    random_item = crud_list.get_random_book_from_list(
-        db, list_id, status=status, max_pages=max_pages, min_pages=min_pages
-    )
-
-    if not random_item:
-        raise HTTPException(status_code=404, detail="No books match the criteria")
-
-    return random_item

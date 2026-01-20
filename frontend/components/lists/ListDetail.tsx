@@ -134,15 +134,15 @@ export default function ListDetail({ listId }: ListDetailProps) {
           </button>
         </div>
       )}
-
       {/* Books Grid */}
       {list.items.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {list.items.map((item) => (
             <div
               key={item.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
+              className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
             >
+              {/* Favorite Heart */}
               <div className="flex justify-end mb-2">
                 <FavoriteHeart
                   listId={listId}
@@ -150,69 +150,75 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   isFavorite={item.is_favorite}
                 />
               </div>
+
+              {/* Clickable area */}
               <div
                 onClick={() => setSelectedBookForDetail(item.book)}
                 className="cursor-pointer"
               >
                 {item.book.cover_url && (
-                  <img
-                    src={item.book.cover_url}
-                    alt={item.book.title}
-                    className="w-full h-48 object-contain mb-3"
-                  />
+                  <div
+                    className="mb-2 rounded-lg flex items-center justify-center"
+                    style={{ height: "200px" }}
+                  >
+                    <img
+                      src={item.book.cover_url}
+                      alt={item.book.title}
+                      className="max-h-full max-w-full object-contain rounded-lg"
+                    />
+                  </div>
                 )}
 
                 <div className="mb-2">
-                  <h3 className="font-semibold text-lg mb-1 line-clamp-2">
+                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">
                     {item.book.title}
                   </h3>
                   <StatusBadge
                     status={item.status}
-                    onClick={() => setSelectedItem(item)}
-                  />
-                </div>
-
-                <p className="text-gray-600 text-sm mb-2">{item.book.author}</p>
-
-                <div className="mb-2" onClick={(e) => e.stopPropagation()}>
-                  <StarRating
-                    rating={item.rating || 0}
-                    onRate={(newRating) => {
-                      // Update rating directly without modal
-                      updateBookInList(item.book_list_id, item.book.id, {
-                        rating: newRating > 0 ? newRating : undefined,
-                      })
-                        .then(() => {
-                          queryClient.invalidateQueries({
-                            queryKey: ["list", listId],
-                          });
-                          toast.success(
-                            newRating > 0 ? "Rating updated!" : "Rating removed"
-                          );
-                        })
-                        .catch(() => {
-                          toast.error("Failed to update rating");
-                        });
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedItem(item);
                     }}
-                    size="sm"
                   />
                 </div>
 
-                {item.book.published_year && (
-                  <p className="text-gray-500 text-xs mb-2">
-                    Published: {item.book.published_year}
-                  </p>
-                )}
+                <p className="text-gray-600 text-xs mb-2">{item.book.author}</p>
 
-                {item.notes && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
-                    <p className="text-sm text-gray-700 italic">{item.notes}</p>
+                {/* Rating - Only show for finished books */}
+                {item.status === "finished" && (
+                  <div className="mb-2" onClick={(e) => e.stopPropagation()}>
+                    <StarRating
+                      rating={item.rating || 0}
+                      onRate={(newRating) => {
+                        updateBookInList(item.book_list_id, item.book.id, {
+                          rating: newRating > 0 ? newRating : undefined,
+                        })
+                          .then(() => {
+                            queryClient.invalidateQueries({
+                              queryKey: ["list", listId],
+                            });
+                            toast.success(
+                              newRating > 0
+                                ? "Rating updated!"
+                                : "Rating removed"
+                            );
+                          })
+                          .catch(() => {
+                            toast.error("Failed to update rating");
+                          });
+                      }}
+                      size="sm"
+                    />
                   </div>
                 )}
 
-                <p className="text-xs text-gray-500 mb-3">
-                  Added {new Date(item.added_at).toLocaleDateString()}
-                </p>
+                {item.book.published_year && (
+                  <p className="text-gray-400 text-xs mb-2">
+                    {item.book.published_year &&
+                      `Published: ${item.book.published_year} • `}
+                    Added: {new Date(item.added_at).toLocaleDateString()}
+                  </p>
+                )}
               </div>
 
               <button
@@ -221,11 +227,9 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   handleRemoveBook(item.book.id, item.book.title);
                 }}
                 disabled={removeBookMutation.isPending}
-                className="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:bg-gray-200 text-sm"
+                className="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:bg-gray-200 text-xs"
               >
-                {removeBookMutation.isPending
-                  ? "Removing..."
-                  : "Remove from List"}
+                {removeBookMutation.isPending ? "Removing..." : "Remove"}
               </button>
             </div>
           ))}
