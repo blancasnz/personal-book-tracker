@@ -48,9 +48,13 @@ def get_currently_reading_books(
 
 
 @router.get("/{list_id}", response_model=BookList)
-def get_list(list_id: int, db: Session = Depends(get_db)):
+def get_list(
+    list_id: int,
+    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    db: Session = Depends(get_db),
+):
     """Get a specific list with all its books"""
-    book_list = crud_list.get_book_list(db, list_id=list_id)
+    book_list = crud_list.get_book_list(db, list_id=list_id, sort_order=sort_order)
     if not book_list:
         raise HTTPException(status_code=404, detail="List not found")
     return book_list

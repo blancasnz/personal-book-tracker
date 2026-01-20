@@ -27,14 +27,15 @@ export default function ListDetail({ listId }: ListDetailProps) {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   const {
     data: list,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["list", listId],
-    queryFn: () => getList(listId),
+    queryKey: ["list", listId, sortOrder],
+    queryFn: () => getList(listId, sortOrder),
   });
 
   const removeBookMutation = useMutation({
@@ -121,6 +122,18 @@ export default function ListDetail({ listId }: ListDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Sort Toggle - ADD THIS */}
+      {list && list.items.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2 text-sm"
+          >
+            {sortOrder === "desc" ? "↓ Newest First" : "↑ Oldest First"}
+          </button>
+        </div>
+      )}
 
       {/* Books Grid */}
       {list.items.length > 0 ? (

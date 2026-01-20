@@ -13,9 +13,32 @@ import random
 
 
 # BookList operations
-def get_book_list(db: Session, list_id: int) -> Optional[BookList]:
-    """Get a single list with all its books"""
-    return db.query(BookList).filter(BookList.id == list_id).first()
+def get_book_list(
+    db: Session, list_id: int, sort_order: str = "desc"
+) -> Optional[BookList]:
+    """Get a single list with all its books, sorted by date added"""
+    book_list = db.query(BookList).filter(BookList.id == list_id).first()
+
+    if not book_list:
+        return None
+
+    # Build query for items with eager loading
+    items_query = (
+        db.query(BookListItem)
+        .options(joinedload(BookListItem.book))
+        .filter(BookListItem.book_list_id == list_id)
+    )
+
+    # Sort by date added
+    if sort_order == "asc":
+        items_query = items_query.order_by(BookListItem.added_at.asc())
+    else:  # desc (default - newest first)
+        items_query = items_query.order_by(BookListItem.added_at.desc())
+
+    # Replace the items with sorted items
+    book_list.items = items_query.all()
+
+    return book_list
 
 
 def get_book_lists(db: Session, skip: int = 0, limit: int = 100) -> List[BookList]:

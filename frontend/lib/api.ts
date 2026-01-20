@@ -52,8 +52,16 @@ export const getLists = async (): Promise<BookListSummary[]> => {
   return response.data;
 };
 
-export const getList = async (listId: number): Promise<BookList> => {
-  const response = await apiClient.get(`/lists/${listId}`);
+export const getList = async (
+  listId: number,
+  sortOrder?: string
+): Promise<BookList> => {
+  const params = new URLSearchParams();
+  if (sortOrder) params.append('sort_order', sortOrder);
+  
+  const response = await apiClient.get(
+    `/lists/${listId}${params.toString() ? `?${params.toString()}` : ''}`
+  );
   return response.data;
 };
 
