@@ -218,6 +218,7 @@ def create_default_lists(db: Session):
             "is_default": 1,
         },
         {"name": "Finished", "description": "Books you've completed", "is_default": 1},
+        {"name": "Favorites", "description": "Your favorite books", "is_default": 1},
     ]
 
     for list_data in default_lists:
@@ -239,8 +240,9 @@ def move_book_to_status_list(
     db: Session, book_id: int, old_list_id: int, new_status: ReadingStatus
 ) -> Optional[BookListItem]:
     """
-    Move a book to the appropriate default list based on status.
-    Removes from old list and adds to new list.
+    Move book between status lists (Want to Read, Currently Reading, Finished).
+    Remove from old status list, add to new status list.
+    Keep in non-status lists (Favorites, custom lists) and update their status.
     """
     # Map status to default list names
     status_to_list = {
@@ -250,6 +252,7 @@ def move_book_to_status_list(
     }
 
     target_list_name = status_to_list[new_status]
+    default_status_list_names = ["Want to Read", "Currently Reading", "Finished"]
 
     # Find the target default list
     target_list = (
@@ -273,7 +276,37 @@ def move_book_to_status_list(
     if not old_item:
         return None
 
-    # Check if book already in target list
+    # Get ALL instances of this book across all lists
+    all_items = (
+        db.query(BookListItem)
+        .join(BookList)
+        .filter(BookListItem.book_id == book_id)
+        .all()
+    )
+
+    # Remove from all DEFAULT STATUS LISTS (except target)
+    for item in all_items:
+        if (
+            item.book_list.name in default_status_list_names
+            and item.book_list.is_default == 1
+            and item.book_list.name != target_list_name
+        ):
+            db.delete(item)
+
+    # Update status in ALL NON-STATUS LISTS (Favorites, custom lists)
+    for item in all_items:
+        if (
+            item.book_list.name not in default_status_list_names
+            or item.book_list.is_default == 0
+        ):
+            item.status = new_status
+            # Sync rating and notes
+            if old_item.rating:
+                item.rating = old_item.rating
+            if old_item.notes and not item.notes:
+                item.notes = old_item.notes
+
+    # Check if already in target status list
     existing_in_target = (
         db.query(BookListItem)
         .filter(
@@ -283,20 +316,16 @@ def move_book_to_status_list(
     )
 
     if existing_in_target:
-        # Just update status in target list
+        # Update status
         existing_in_target.status = new_status
-        # Optionally preserve notes/rating/favorite from old item
-        if old_list_id != target_list.id:
-            existing_in_target.notes = old_item.notes
-            existing_in_target.rating = old_item.rating
-            existing_in_target.is_favorite = old_item.is_favorite
-            # Remove from old list
-            db.delete(old_item)
+        existing_in_target.notes = old_item.notes
+        existing_in_target.rating = old_item.rating
+        existing_in_target.is_favorite = old_item.is_favorite
         db.commit()
         db.refresh(existing_in_target)
         return existing_in_target
     else:
-        # Create new item in target list
+        # Create new item in target status list
         new_item = BookListItem(
             book_list_id=target_list.id,
             book_id=book_id,
@@ -306,11 +335,6 @@ def move_book_to_status_list(
             is_favorite=old_item.is_favorite,
         )
         db.add(new_item)
-
-        # Remove from old list (only if it's a different list)
-        if old_list_id != target_list.id:
-            db.delete(old_item)
-
         db.commit()
         db.refresh(new_item)
         return new_item

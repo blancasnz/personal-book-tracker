@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateBookInList } from "@/lib/api";
+import { updateBookInList, addBookToList, getLists, getList } from "@/lib/api";
 import toast from "react-hot-toast";
 
 interface FavoriteHeartProps {
@@ -18,12 +18,79 @@ export default function FavoriteHeart({
   const queryClient = useQueryClient();
 
   const toggleFavoriteMutation = useMutation({
-    mutationFn: () =>
-      updateBookInList(listId, bookId, {
-        is_favorite: isFavorite === 1 ? 0 : 1,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["list", listId] });
+    mutationFn: async () => {
+      const newFavoriteStatus = isFavorite === 1 ? 0 : 1;
+
+      // Get all lists to find all instances of this book
+      const allLists = await getLists();
+      const bookLists = await Promise.all(
+        allLists.map((list) => getList(list.id).catch(() => null))
+      );
+
+      // Update favorite status in ALL lists that contain this book
+      for (const list of bookLists) {
+        if (!list) continue;
+        const hasBook = list.items?.find(
+          (item: any) => item.book.id === bookId
+        );
+        if (hasBook) {
+          await updateBookInList(list.id, bookId, {
+            is_favorite: newFavoriteStatus,
+          });
+        }
+      }
+
+      // If favoriting, add to Favorites list
+      if (newFavoriteStatus === 1) {
+        const favoritesList = allLists.find(
+          (list) => list.name === "Favorites" && list.is_default === 1
+        );
+
+        if (favoritesList) {
+          try {
+            const currentListData = await getList(listId);
+            const currentItem = currentListData.items?.find(
+              (item: any) => item.book.id === bookId
+            );
+            const status = currentItem?.status || "to_read";
+            const rating = currentItem?.rating || undefined;
+
+            await addBookToList(favoritesList.id, {
+              book_id: bookId,
+              status: status,
+              is_favorite: 1,
+              rating: rating,
+            });
+          } catch (error: any) {
+            // Ignore if already in favorites
+            if (!error.response?.data?.detail?.includes("already")) {
+              throw error;
+            }
+          }
+        }
+      }
+
+      // If unfavoriting, remove from Favorites list
+      if (newFavoriteStatus === 0) {
+        const favoritesList = allLists.find(
+          (list) => list.name === "Favorites" && list.is_default === 1
+        );
+
+        if (favoritesList) {
+          try {
+            const { removeBookFromList } = await import("@/lib/api");
+            await removeBookFromList(favoritesList.id, bookId);
+          } catch {
+            // Ignore if not in favorites list
+          }
+        }
+      }
+    },
+    onSuccess: async () => {
+      // Invalidate all list queries to refresh everywhere
+      queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
+
       toast.success(
         isFavorite === 1 ? "Removed from favorites" : "Added to favorites!"
       );
@@ -36,7 +103,7 @@ export default function FavoriteHeart({
   return (
     <button
       onClick={(e) => {
-        e.stopPropagation(); // Prevent triggering parent click handlers
+        e.stopPropagation();
         toggleFavoriteMutation.mutate();
       }}
       disabled={toggleFavoriteMutation.isPending}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { moveBookStatus, updateBookInList, getLists } from "@/lib/api";
+import { moveBookStatus, updateBookInList, getLists, getList } from "@/lib/api";
 import { BookListItem, ReadingStatus } from "@/types";
 import StarRating from "../ui/StarRating";
 import toast from "react-hot-toast";
@@ -25,20 +25,26 @@ export default function UpdateStatusModal({
 
   const updateMutation = useMutation({
     mutationFn: async () => {
-      // Move the book to new status list
+      // First move the book to new status list
       await moveBookStatus(item.book_list_id, item.book.id, status);
 
-      // If finished and has rating, update rating separately
+      // If finished and has rating, update rating in ALL lists
       if (status === "finished" && rating > 0) {
-        // The moveBookStatus already moved it, now we just need to update the rating
-        // We need to find which list it's in now (the Finished list)
+        // Get all lists this book is in
         const allLists = await getLists();
-        const finishedList = allLists.find(
-          (list: any) => list.name === "Finished" && list.is_default === 1
+        const bookLists = await Promise.all(
+          allLists.map((list) => getList(list.id).catch(() => null))
         );
 
-        if (finishedList) {
-          await updateBookInList(finishedList.id, item.book.id, { rating });
+        // Update rating in all lists that contain this book
+        for (const list of bookLists) {
+          if (!list) continue;
+          const hasBook = list.items?.find(
+            (i: any) => i.book.id === item.book.id
+          );
+          if (hasBook) {
+            await updateBookInList(list.id, item.book.id, { rating });
+          }
         }
       }
     },
@@ -95,7 +101,8 @@ export default function UpdateStatusModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
       onClick={onClose}
     >
       <div

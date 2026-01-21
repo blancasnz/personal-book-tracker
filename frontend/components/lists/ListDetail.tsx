@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getList, removeBookFromList } from "@/lib/api";
+import { getList, removeBookFromList, getLists } from "@/lib/api";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import StatusBadge from "../ui/StatusBadge";
@@ -14,6 +14,7 @@ import StarRating from "../ui/StarRating";
 import { updateBookInList } from "@/lib/api";
 import EditListModal from "./EditListModal";
 import RandomBookPicker from "./RandomBookPicker";
+import SearchInListModal from "./SearchInListModal";
 
 interface ListDetailProps {
   listId: number;
@@ -28,6 +29,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const {
     data: list,
@@ -102,6 +104,14 @@ export default function ListDetail({ listId }: ListDetailProps) {
 
           {/* Edit Button - Only for non-default lists */}
           <div className="flex gap-2">
+            {/* Search button for ALL lists */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="px-4 py-2 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition-colors flex items-center gap-2"
+            >
+              🔍 Add Books
+            </button>
+
             {/* Random button for ALL lists */}
             <button
               onClick={() => setIsRandomPickerOpen(true)}
@@ -189,23 +199,49 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   <div className="mb-2" onClick={(e) => e.stopPropagation()}>
                     <StarRating
                       rating={item.rating || 0}
-                      onRate={(newRating) => {
-                        updateBookInList(item.book_list_id, item.book.id, {
-                          rating: newRating > 0 ? newRating : undefined,
-                        })
-                          .then(() => {
-                            queryClient.invalidateQueries({
-                              queryKey: ["list", listId],
-                            });
-                            toast.success(
-                              newRating > 0
-                                ? "Rating updated!"
-                                : "Rating removed"
+                      onRate={async (newRating) => {
+                        try {
+                          // Update rating in current list
+                          await updateBookInList(
+                            item.book_list_id,
+                            item.book.id,
+                            {
+                              rating: newRating > 0 ? newRating : undefined,
+                            }
+                          );
+
+                          // Get all lists this book is in and update rating everywhere
+                          const allLists = await getLists();
+                          const bookLists = await Promise.all(
+                            allLists.map((list) =>
+                              getList(list.id).catch(() => null)
+                            )
+                          );
+
+                          // Update rating in all lists that contain this book
+                          for (const list of bookLists) {
+                            if (!list) continue;
+                            const hasBook = list.items?.find(
+                              (i: any) => i.book.id === item.book.id
                             );
-                          })
-                          .catch(() => {
-                            toast.error("Failed to update rating");
+                            if (hasBook && list.id !== item.book_list_id) {
+                              await updateBookInList(list.id, item.book.id, {
+                                rating: newRating > 0 ? newRating : undefined,
+                              });
+                            }
+                          }
+
+                          // Invalidate all queries to refresh
+                          queryClient.invalidateQueries({ queryKey: ["list"] });
+                          queryClient.invalidateQueries({
+                            queryKey: ["lists"],
                           });
+                          toast.success(
+                            newRating > 0 ? "Rating updated!" : "Rating removed"
+                          );
+                        } catch {
+                          toast.error("Failed to update rating");
+                        }
                       }}
                       size="sm"
                     />
@@ -271,6 +307,13 @@ export default function ListDetail({ listId }: ListDetailProps) {
           listId={listId}
           isOpen={isRandomPickerOpen}
           onClose={() => setIsRandomPickerOpen(false)}
+        />
+      )}
+      {isSearchModalOpen && (
+        <SearchInListModal
+          listId={listId}
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
         />
       )}
     </div>
