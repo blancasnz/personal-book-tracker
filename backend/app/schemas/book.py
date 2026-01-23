@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List
+import re
 
 
 # Base schema with common fields
@@ -11,6 +12,40 @@ class BookBase(BaseModel):
     description: Optional[str] = None
     published_year: Optional[int] = None
     page_count: Optional[int] = None
+    genres: Optional[List[str]] = None
+
+    @field_validator("genres", mode="before")
+    @classmethod
+    def parse_genres(cls, v):
+        """Parse genres from comma-separated string to list"""
+        if isinstance(v, str) and v:
+            return [g.strip() for g in v.split(",") if g.strip()]
+        if v is None:
+            return []
+        return v
+
+    @field_validator("genres")
+    @classmethod
+    def validate_genres(cls, v):
+        """Validate genre list"""
+        if not v:
+            return v
+
+        # Max 10 genres
+        if len(v) > 10:
+            raise ValueError("Maximum 10 genres allowed")
+
+        # Validate each genre
+        for genre in v:
+            # Max 50 characters
+            if len(genre) > 50:
+                raise ValueError(f"Genre '{genre}' is too long (max 50 characters)")
+
+            # Only alphanumeric, spaces, hyphens, apostrophes, ampersands
+            if not re.match(r"^[a-zA-Z0-9\s\-'&]+$", genre):
+                raise ValueError(f"Genre '{genre}' contains invalid characters")
+
+        return v
 
 
 # For creating a book (no ID yet)
@@ -27,6 +62,40 @@ class BookUpdate(BaseModel):
     description: Optional[str] = None
     published_year: Optional[int] = None
     page_count: Optional[int] = None
+    genres: Optional[List[str]] = None
+
+    @field_validator("genres", mode="before")
+    @classmethod
+    def parse_genres(cls, v):
+        """Parse genres from comma-separated string to list"""
+        if isinstance(v, str) and v:
+            return [g.strip() for g in v.split(",") if g.strip()]
+        if v is None:
+            return []
+        return v
+
+    @field_validator("genres")
+    @classmethod
+    def validate_genres(cls, v):
+        """Validate genre list"""
+        if not v:
+            return v
+
+        # Max 10 genres
+        if len(v) > 10:
+            raise ValueError("Maximum 10 genres allowed")
+
+        # Validate each genre
+        for genre in v:
+            # Max 50 characters
+            if len(genre) > 50:
+                raise ValueError(f"Genre '{genre}' is too long (max 50 characters)")
+
+            # Only alphanumeric, spaces, hyphens, apostrophes, ampersands
+            if not re.match(r"^[a-zA-Z0-9\s\-'&]+$", genre):
+                raise ValueError(f"Genre '{genre}' contains invalid characters")
+
+        return v
 
 
 # For returning a book (includes ID and DB fields)

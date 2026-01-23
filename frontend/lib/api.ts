@@ -89,6 +89,11 @@ export const updateBookInList = async (
   return response.data;
 };
 
+export const updateBook = async (bookId: number, update: Partial<BookCreate>) => {
+  const response = await apiClient.patch(`/books/${bookId}`, update);
+  return response.data;
+};
+
 export const removeBookFromList = async (listId: number, bookId: number) => {
   await apiClient.delete(`/lists/${listId}/books/${bookId}`);
 };

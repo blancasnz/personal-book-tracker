@@ -346,6 +346,7 @@ def get_random_book_from_list(
     status: Optional[ReadingStatus] = None,
     max_pages: Optional[int] = None,
     min_pages: Optional[int] = None,
+    genre: Optional[str] = None,
 ) -> Optional[BookListItem]:
     """
     Get a random book from a list with optional filters
@@ -365,6 +366,9 @@ def get_random_book_from_list(
 
     if min_pages:
         query = query.join(BookListItem.book).filter(Book.page_count >= min_pages)
+
+    if genre:
+        query = query.join(Book).filter(Book.genres.like(f"%{genre}%"))
 
     # Get all matching items
     items = query.all()

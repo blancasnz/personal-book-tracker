@@ -13,6 +13,8 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
         "q": query,
         "maxResults": min(max_results, 40),  # Google Books max is 40
         "printType": "books",
+        "langRestrict": "en",  # ADD THIS: Only English books
+        "orderBy": "relevance",  # ADD THIS: Most relevant (popular) first
     }
 
     async with httpx.AsyncClient() as client:
@@ -63,6 +65,9 @@ def transform_google_book(item: dict) -> Optional[dict]:
         authors = volume_info.get("authors", [])
         author = ", ".join(authors) if authors else "Unknown Author"
 
+        # Get genres/categories
+        categories = volume_info.get("categories", [])
+
         book = {
             "title": volume_info.get("title", "Unknown Title"),
             "author": author,
@@ -71,6 +76,7 @@ def transform_google_book(item: dict) -> Optional[dict]:
             "description": volume_info.get("description"),
             "published_year": parse_publish_year(volume_info.get("publishedDate")),
             "page_count": volume_info.get("pageCount"),
+            "genres": categories,
         }
 
         return book

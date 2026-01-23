@@ -160,6 +160,7 @@ export default function BookSearch() {
           book={selectedBookForDetail}
           isOpen={!!selectedBookForDetail}
           onClose={() => setSelectedBookForDetail(null)}
+          showAddButton={true}
         />
       )}
     </div>

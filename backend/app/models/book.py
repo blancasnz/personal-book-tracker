@@ -13,5 +13,4 @@ class Book(Base):
     description = Column(Text, nullable=True)
     published_year = Column(Integer, nullable=True)
     page_count = Column(Integer, nullable=True)
-
-    # We'll add relationship to lists later
+    genres = Column(Text)

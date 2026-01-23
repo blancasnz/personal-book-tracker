@@ -78,6 +78,7 @@ def get_random_book(
     ),
     max_pages: Optional[int] = Query(None, ge=1, description="Maximum page count"),
     min_pages: Optional[int] = Query(None, ge=1, description="Minimum page count"),
+    genre: Optional[str] = Query(None, description="Filter by genre"),
     db: Session = Depends(get_db),
 ):
     """Get a random book from the list with optional filters"""
@@ -86,7 +87,12 @@ def get_random_book(
         raise HTTPException(status_code=404, detail="List not found")
 
     random_item = crud_list.get_random_book_from_list(
-        db, list_id, status=status, max_pages=max_pages, min_pages=min_pages
+        db,
+        list_id,
+        status=status,
+        max_pages=max_pages,
+        min_pages=min_pages,
+        genre=genre,
     )
 
     if not random_item:

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { moveBookStatus, updateBookInList, getLists, getList } from "@/lib/api";
+import {
+  moveBookStatus,
+  updateBookInList,
+  getLists,
+  getList,
+  removeBookFromList,
+} from "@/lib/api";
 import { BookListItem, ReadingStatus } from "@/types";
 import StarRating from "../ui/StarRating";
 import toast from "react-hot-toast";
@@ -58,6 +64,40 @@ export default function UpdateStatusModal({
     onError: (error) => {
       console.error("Move status error:", error);
       toast.error("Failed to update status");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      // Get all lists and remove book from everywhere
+      const allLists = await getLists();
+      const bookLists = await Promise.all(
+        allLists.map((list) => getList(list.id).catch(() => null))
+      );
+
+      for (const list of bookLists) {
+        if (!list) continue;
+        const hasBook = list.items?.find(
+          (i: any) => i.book.id === item.book.id
+        );
+        if (hasBook) {
+          try {
+            await removeBookFromList(list.id, item.book.id);
+          } catch {
+            // Ignore errors
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+      onClose();
+      toast.success("Book removed from library");
+    },
+    onError: () => {
+      toast.error("Failed to remove book");
     },
   });
 
@@ -150,7 +190,8 @@ export default function UpdateStatusModal({
           </div>
         )}
 
-        <div className="flex gap-3">
+        {/* Buttons */}
+        <div className="flex gap-3 w-full">
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -166,6 +207,21 @@ export default function UpdateStatusModal({
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
           >
             {updateMutation.isPending ? "Updating..." : "Update"}
+          </button>
+          <button
+            onClick={() => {
+              if (
+                confirm(
+                  `Remove "${item.book.title}" from your library? This will remove it from all lists.`
+                )
+              ) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:bg-gray-200 border border-red-200"
+          >
+            {deleteMutation.isPending ? "Removing..." : "🗑️ Remove"}
           </button>
         </div>
       </div>

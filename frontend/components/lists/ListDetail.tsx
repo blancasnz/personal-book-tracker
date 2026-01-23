@@ -15,6 +15,8 @@ import { updateBookInList } from "@/lib/api";
 import EditListModal from "./EditListModal";
 import RandomBookPicker from "./RandomBookPicker";
 import SearchInListModal from "./SearchInListModal";
+import GenreBadges from "../ui/GenreBadges";
+import EditGenresModal from "../books/EditGenresModal";
 
 interface ListDetailProps {
   listId: number;
@@ -30,6 +32,11 @@ export default function ListDetail({ listId }: ListDetailProps) {
   const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [editGenresBook, setEditGenresBook] = useState<{
+    id: number;
+    title: string;
+    genres: string[];
+  } | null>(null);
 
   const {
     data: list,
@@ -142,15 +149,13 @@ export default function ListDetail({ listId }: ListDetailProps) {
               🎲 Random Book
             </button>
 
-            {/* Edit button only for non-default lists */}
-            {list.is_default === 0 && (
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
-              >
-                ✏️ Edit List
-              </button>
-            )}
+            {/* Edit/Manage button for ALL lists */}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+            >
+              ✏️ Edit List
+            </button>
           </div>
         </div>
       </div>
@@ -174,7 +179,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
               key={item.id}
               className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
             >
-              {/* Favorite Heart */}
+              {/* Top Row: Heart (left) and Trash (right) */}
               <div className="flex justify-end mb-2">
                 <FavoriteHeart
                   listId={listId}
@@ -215,6 +220,38 @@ export default function ListDetail({ listId }: ListDetailProps) {
                 </div>
 
                 <p className="text-gray-600 text-xs mb-2">{item.book.author}</p>
+
+                {/* Genres - Clickable to edit */}
+                {item.book.genres && item.book.genres.length > 0 ? (
+                  <div
+                    className="mb-2 cursor-pointer hover:opacity-80"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditGenresBook({
+                        id: item.book.id,
+                        title: item.book.title,
+                        genres: item.book.genres || [],
+                      });
+                    }}
+                    title="Click to edit genres"
+                  >
+                    <GenreBadges genres={item.book.genres} maxVisible={3} />
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditGenresBook({
+                        id: item.book.id,
+                        title: item.book.title,
+                        genres: [],
+                      });
+                    }}
+                    className="mb-2 text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    + Add genres
+                  </button>
+                )}
 
                 {/* Rating - Only show for finished books */}
                 {item.status === "finished" && (
@@ -278,16 +315,6 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   </p>
                 )}
               </div>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveBook(item.book.id, item.book.title);
-                }}
-                className="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-xs"
-              >
-                Remove
-              </button>
             </div>
           ))}
         </div>
@@ -335,6 +362,15 @@ export default function ListDetail({ listId }: ListDetailProps) {
           listId={listId}
           isOpen={isSearchModalOpen}
           onClose={() => setIsSearchModalOpen(false)}
+        />
+      )}
+      {editGenresBook && (
+        <EditGenresModal
+          bookId={editGenresBook.id}
+          currentGenres={editGenresBook.genres}
+          bookTitle={editGenresBook.title}
+          isOpen={!!editGenresBook}
+          onClose={() => setEditGenresBook(null)}
         />
       )}
     </div>

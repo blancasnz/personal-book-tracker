@@ -57,11 +57,11 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 
 @router.patch("/{book_id}", response_model=Book)
 def update_book(book_id: int, book_update: BookUpdate, db: Session = Depends(get_db)):
-    """Update a book"""
-    book = crud_book.update_book(db, book_id=book_id, book_update=book_update)
-    if not book:
+    """Update a book's details including genres"""
+    updated_book = crud_book.update_book(db, book_id, book_update)
+    if not updated_book:
         raise HTTPException(status_code=404, detail="Book not found")
-    return book
+    return updated_book
 
 
 @router.delete("/{book_id}", status_code=204)
