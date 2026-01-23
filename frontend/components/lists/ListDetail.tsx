@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getList, removeBookFromList, getLists } from "@/lib/api";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -40,21 +40,43 @@ export default function ListDetail({ listId }: ListDetailProps) {
     queryFn: () => getList(listId, sortOrder),
   });
 
-  const removeBookMutation = useMutation({
-    mutationFn: (bookId: number) => removeBookFromList(listId, bookId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["list", listId] });
-      toast.success("Book removed from list");
-    },
-    onError: (error) => {
-      console.error("Error removing book:", error);
-      toast.error("Failed to remove book from list");
-    },
-  });
+  const handleRemoveBook = async (bookId: number, bookTitle: string) => {
+    if (
+      !confirm(
+        `Remove "${bookTitle}" from your library? This will remove it from all lists.`
+      )
+    )
+      return;
 
-  const handleRemoveBook = (bookId: number, bookTitle: string) => {
-    if (confirm(`Remove "${bookTitle}" from this list?`)) {
-      removeBookMutation.mutate(bookId);
+    try {
+      // Get all lists to find all instances of this book
+      const allLists = await getLists();
+      const bookLists = await Promise.all(
+        allLists.map((list) => getList(list.id).catch(() => null))
+      );
+
+      // Remove from ALL lists that contain this book
+      for (const list of bookLists) {
+        if (!list) continue;
+        const hasBook = list.items?.find(
+          (item: any) => item.book.id === bookId
+        );
+        if (hasBook) {
+          try {
+            await removeBookFromList(list.id, bookId);
+          } catch {
+            // Ignore errors
+          }
+        }
+      }
+
+      // Invalidate all queries
+      queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
+      toast.success("Book removed from library");
+    } catch (error) {
+      console.error("Error removing book:", error);
+      toast.error("Failed to remove book");
     }
   };
 
@@ -262,10 +284,9 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   e.stopPropagation();
                   handleRemoveBook(item.book.id, item.book.title);
                 }}
-                disabled={removeBookMutation.isPending}
-                className="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:bg-gray-200 text-xs"
+                className="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-xs"
               >
-                {removeBookMutation.isPending ? "Removing..." : "Remove"}
+                Remove
               </button>
             </div>
           ))}

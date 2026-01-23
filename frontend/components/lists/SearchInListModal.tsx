@@ -83,15 +83,54 @@ export default function SearchInListModal({
       // Get the appropriate status for this list
       const status = await getStatusForList();
 
-      // Then add to this list with correct status
+      // Check if we're adding from Favorites list
+      const allLists = await getLists();
+      const currentList = allLists.find((l) => l.id === listId);
+      const isAddingFromFavorites =
+        currentList?.name === "Favorites" && currentList?.is_default === 1;
+
+      // Add to current list (with favorite flag if in Favorites)
       await addBookToList(listId, {
         book_id: addedBook.id,
         status: status,
+        is_favorite: isAddingFromFavorites ? 1 : 0, // ADD THIS
       });
+
+      // If status is to_read/reading/finished, also add to the corresponding default status list
+      const statusListNames = {
+        to_read: "Want to Read",
+        reading: "Currently Reading",
+        finished: "Finished",
+      };
+
+      const statusListName = statusListNames[status];
+      const statusList = allLists.find(
+        (list) => list.name === statusListName && list.is_default === 1
+      );
+
+      const isCurrentListStatusList =
+        currentList &&
+        ["Want to Read", "Currently Reading", "Finished"].includes(
+          currentList.name
+        ) &&
+        currentList.is_default === 1;
+
+      if (statusList && !isCurrentListStatusList) {
+        try {
+          await addBookToList(statusList.id, {
+            book_id: addedBook.id,
+            status: status,
+            is_favorite: isAddingFromFavorites ? 1 : 0,
+          });
+        } catch {
+          // Ignore if already in that list
+        }
+      }
+
       return addedBook;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["list", listId] });
+      queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("Book added to list!");
     },
