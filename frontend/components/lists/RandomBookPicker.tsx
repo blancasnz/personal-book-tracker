@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { getRandomBook } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getRandomBook, getList } from "@/lib/api";
 import { BookListItem } from "@/types";
 import StatusBadge from "../ui/StatusBadge";
 import toast from "react-hot-toast";
 import AddToListModal from "./AddToListModal";
+import GenreBadges from "../ui/GenreBadges";
 
 interface RandomBookPickerProps {
   listId: number;
@@ -24,12 +25,32 @@ export default function RandomBookPicker({
   const [pickedBook, setPickedBook] = useState<BookListItem | null>(null);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showAddToList, setShowAddToList] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [availableGenres, setAvailableGenres] = useState<string[]>([]);
+
+  const { data: list } = useQuery({
+    queryKey: ["list", listId],
+    queryFn: () => getList(listId),
+    enabled: isOpen, // Only fetch when modal is open
+  });
+
+  useEffect(() => {
+    if (list?.items) {
+      // Extract all unique genres from all books in the list
+      const allGenres = list.items
+        .flatMap((item) => item.book.genres || [])
+        .filter(Boolean);
+      const uniqueGenres = Array.from(new Set(allGenres)).sort();
+      setAvailableGenres(uniqueGenres);
+    }
+  }, [list]);
 
   const pickBookMutation = useMutation({
     mutationFn: () => {
       const filters: any = {};
       if (maxPages > 0) filters.max_pages = maxPages;
       if (minPages > 0) filters.min_pages = minPages;
+      if (selectedGenre) filters.genre = selectedGenre;
 
       return getRandomBook(listId, filters);
     },
@@ -58,6 +79,7 @@ export default function RandomBookPicker({
     setPickedBook(null);
     setMaxPages(0);
     setMinPages(0);
+    setSelectedGenre("");
   };
 
   if (!isOpen) return null;
@@ -91,6 +113,27 @@ export default function RandomBookPicker({
             <>
               {/* Filters */}
               <div className="space-y-4 mb-6">
+                {/* Genre Filter */}
+                {availableGenres.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Genre (optional)
+                    </label>
+                    <select
+                      value={selectedGenre}
+                      onChange={(e) => setSelectedGenre(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Any Genre</option>
+                      {availableGenres.map((genre) => (
+                        <option key={genre} value={genre}>
+                          {genre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {/*Page Count */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,6 +206,16 @@ export default function RandomBookPicker({
                   <p className="text-lg text-gray-700 mb-3">
                     {pickedBook.book.author}
                   </p>
+
+                  {pickedBook.book.genres &&
+                    pickedBook.book.genres.length > 0 && (
+                      <div className="mb-3">
+                        <GenreBadges
+                          genres={pickedBook.book.genres}
+                          maxVisible={5}
+                        />
+                      </div>
+                    )}
 
                   <div className="flex justify-center gap-3 mb-3">
                     <StatusBadge status={pickedBook.status} />

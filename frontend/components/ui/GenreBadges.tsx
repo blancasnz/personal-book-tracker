@@ -13,7 +13,7 @@ export default function GenreBadges({
 }: GenreBadgesProps) {
   const [showAll, setShowAll] = useState(false);
 
-  if (!genres || genres.length === 0) return null;
+  if (!genres || !Array.isArray(genres) || genres.length === 0) return null;
 
   const visibleGenres = showAll ? genres : genres.slice(0, maxVisible);
   const hasMore = genres.length > maxVisible;
