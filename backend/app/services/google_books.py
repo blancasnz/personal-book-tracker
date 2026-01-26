@@ -1,6 +1,5 @@
 import httpx
 from typing import List, Optional
-from app.schemas.book import BookCreate
 
 GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
 
@@ -36,52 +35,57 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
             return []
 
 
+def extract_year(date_string: Optional[str]) -> Optional[int]:
+    """Extract year from date string like '2024-01-15' or '2024'"""
+    if not date_string:
+        return None
+    try:
+        # Take first 4 characters (the year)
+        return int(date_string[:4])
+    except (ValueError, IndexError):
+        return None
+
+
 def transform_google_book(item: dict) -> Optional[dict]:
-    """
-    Transform Google Books API response to our Book schema format
-    """
+    """Transform Google Books API response to our format"""
     try:
         volume_info = item.get("volumeInfo", {})
 
-        # Get ISBN (prefer ISBN-13, fallback to ISBN-10)
+        # Get cover image
+        image_links = volume_info.get("imageLinks", {})
+        cover_url = image_links.get("thumbnail") or image_links.get("smallThumbnail")
+
+        if cover_url:
+            cover_url = cover_url.replace("http://", "https://")
+
+        # Get ISBN (prefer ISBN-13)
         isbn = None
         for identifier in volume_info.get("industryIdentifiers", []):
             if identifier.get("type") == "ISBN_13":
                 isbn = identifier.get("identifier")
                 break
-            elif identifier.get("type") == "ISBN_10":
+            elif identifier.get("type") == "ISBN_10" and not isbn:
                 isbn = identifier.get("identifier")
 
-        # Get cover image (prefer high quality)
-        image_links = volume_info.get("imageLinks", {})
-        cover_url = (
-            image_links.get("large")
-            or image_links.get("medium")
-            or image_links.get("thumbnail")
-            or image_links.get("smallThumbnail")
-        )
-
-        # Get authors (join multiple authors)
+        # Get author
         authors = volume_info.get("authors", [])
-        author = ", ".join(authors) if authors else "Unknown Author"
+        author = authors[0] if authors else "Unknown Author"
 
         # Get genres/categories
         categories = volume_info.get("categories", [])
 
-        book = {
+        return {
             "title": volume_info.get("title", "Unknown Title"),
             "author": author,
             "isbn": isbn,
             "cover_url": cover_url,
             "description": volume_info.get("description"),
-            "published_year": parse_publish_year(volume_info.get("publishedDate")),
+            "published_year": extract_year(volume_info.get("publishedDate")),
             "page_count": volume_info.get("pageCount"),
             "genres": categories,
         }
-
-        return book
     except Exception as e:
-        print(f"Error transforming book data: {e}")
+        print(f"Error transforming book: {e}")
         return None
 
 

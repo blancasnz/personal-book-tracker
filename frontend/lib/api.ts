@@ -138,3 +138,8 @@ export const getRandomBook = async (
   );
   return response.data;
 };
+
+export const getNYTBestsellers = async (listName: string = "combined-print-and-e-book-fiction") => {
+  const response = await apiClient.get(`/nyt/bestsellers?list_name=${listName}`);
+  return response.data;
+};
