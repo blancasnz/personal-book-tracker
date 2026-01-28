@@ -144,7 +144,10 @@ export default function AwardWinnersRow({
   const books = bookQueries
     .map((q) => q.data)
     .filter((book): book is Book & { awardYear: number } => book !== null);
-
+  console.log("AwardWinnersRow - awardType:", awardType);
+  console.log("AwardWinnersRow - isLoading:", isLoading);
+  console.log("AwardWinnersRow - bookQueries:", bookQueries);
+  console.log("AwardWinnersRow - books:", books);
   if (isLoading) {
     return (
       <div className="flex gap-4 overflow-x-auto pb-4">

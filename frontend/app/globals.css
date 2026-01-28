@@ -1,41 +1,103 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 @import "tailwindcss";
 
+/* Tailwind v4 uses @theme instead of CSS variables */
+@theme {
+  /* Sage & Pine Forest color palette */
+  --color-primary-50: #f6f8f6;
+  --color-primary-100: #e8f0e8;
+  --color-primary-200: #d4e4d4;
+  --color-primary-300: #a8c9a8;
+  --color-primary-400: #7fb07f;
+  --color-primary-500: #5a8f5a;  /* Main sage green */
+  --color-primary-600: #4a7a4a;
+  --color-primary-700: #3d6240;
+  --color-primary-800: #2f4d33;
+  --color-primary-900: #1f3524;
+
+  --color-secondary-50: #f3f6f4;
+  --color-secondary-100: #e1ebe4;
+  --color-secondary-200: #c8d9ce;
+  --color-secondary-300: #a3bfad;
+  --color-secondary-400: #7a9e85;  /* Soft forest green */
+  --color-secondary-500: #5d8268;
+  --color-secondary-600: #4a6b54;
+  --color-secondary-700: #3d5746;
+  --color-secondary-800: #2f4437;
+  --color-secondary-900: #233429;
+
+  --color-accent-50: #f0f4f8;
+  --color-accent-100: #dde7f0;
+  --color-accent-200: #bdd4e5;
+  --color-accent-300: #8fb5d1;
+  --color-accent-400: #6396ba;  /* Soft blue-gray */
+  --color-accent-500: #4a7a9e;
+  --color-accent-600: #3d6485;
+  --color-accent-700: #33526d;
+  --color-accent-800: #284157;
+  --color-accent-900: #1d3243;
+
+  --color-warm-50: #fafaf9;
+  --color-warm-100: #f5f5f4;
+  --color-warm-200: #e9ebe8;
+  --color-warm-300: #d6d9d4;
+  --color-warm-400: #b8bdb5;
+  --color-warm-500: #8f9489;
+  --color-warm-600: #6f7569;
+  --color-warm-700: #585d53;
+  --color-warm-800: #3f433b;
+  --color-warm-900: #2b2e28;
+
+  /* Pine-inspired neutrals */
+  --color-pine-50: #f4f6f4;
+  --color-pine-100: #e6ebe6;
+  --color-pine-200: #cdd6cd;
+  --color-pine-300: #a8b5a8;
+  --color-pine-400: #7d8f7d;
+  --color-pine-500: #5c6e5c;
+  --color-pine-600: #4a5a4a;
+  --color-pine-700: #3d4a3d;
+  --color-pine-800: #2f3a2f;
+  --color-pine-900: #222822;
+
+  /* Font family - use the Quicksand variable */
+  --font-family-quicksand: var(--font-quicksand), sans-serif;
+
+  /* Custom shadows */
+  --shadow-card: 0 2px 16px rgb(0 0 0 / 0.06);
+  --shadow-card-hover: 0 8px 24px rgb(90 143 90 / 0.12);
+  --shadow-book: 0 4px 12px rgb(0 0 0 / 0.15), inset 0 -2px 4px rgb(0 0 0 / 0.1);
+
+  /* Border radius */
+  --radius-book: 8px;
+}
+
 @layer base {
-  :root {
-    /* Warm book-themed colors */
-    --color-primary: 139 92 246; /* Purple */
-    --color-secondary: 59 130 246; /* Blue */
-    --color-accent: 236 72 153; /* Pink */
-    --color-success: 34 197 94; /* Green */
-    --color-warning: 251 191 36; /* Amber */
+  body {
+    font-family: var(--font-family-quicksand);
+    background-color: var(--color-warm-50);
+    color: var(--color-pine-900);
   }
 }
 
-@layer components {
-  /* Card shadows */
-  .card-shadow {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  }
-  
-  .card-shadow-hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  }
-
+@layer utilities {
   /* Gradient backgrounds */
   .gradient-primary {
-    background: linear-gradient(135deg, rgb(139 92 246) 0%, rgb(59 130 246) 100%);
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-400) 100%);
   }
 
-  .gradient-warm {
-    background: linear-gradient(135deg, rgb(251 146 60) 0%, rgb(236 72 153) 100%);
+  .gradient-forest {
+    background: linear-gradient(135deg, var(--color-secondary-400) 0%, var(--color-primary-600) 100%);
   }
 
-  .gradient-cool {
-    background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 51 234) 100%);
+  .gradient-soft {
+    background: linear-gradient(to bottom, var(--color-warm-50) 0%, var(--color-pine-50) 100%);
   }
+
+  .gradient-sage {
+    background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-secondary-100) 100%);
+  }
+
+  /* Scrollbar utilities */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -43,5 +105,13 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Book cover shadow */
+  .book-cover-shadow {
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.12),
+      0 8px 20px rgba(0, 0, 0, 0.15),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.1);
   }
 }

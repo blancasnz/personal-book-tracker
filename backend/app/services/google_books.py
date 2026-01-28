@@ -1,20 +1,61 @@
 import httpx
+import os
+from datetime import datetime, timedelta
 from typing import List, Optional
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
+
+# Simple in-memory cache
+_cache = {}
+CACHE_DURATION = timedelta(hours=1)
+
+
+def _get_from_cache(key: str) -> Optional[List[dict]]:
+    if key in _cache:
+        data, timestamp = _cache[key]
+        if datetime.now() - timestamp < CACHE_DURATION:
+            print(f"Cache hit for: {key}")
+            return data
+        else:
+            del _cache[key]
+    return None
+
+
+def _set_cache(key: str, data: List[dict]):
+    if data:
+        _cache[key] = (data, datetime.now())
+        print(f"Cached {len(data)} results for: {key}")
 
 
 async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
     """
     Search Google Books API and return results
     """
+    # Check cache first
+    cache_key = f"search:{query}:{max_results}"
+    cached = _get_from_cache(cache_key)
+    if cached is not None:
+        return cached
+
     params = {
         "q": query,
-        "maxResults": min(max_results, 40),  # Google Books max is 40
+        "maxResults": min(max_results, 40),
         "printType": "books",
-        "langRestrict": "en",  # ADD THIS: Only English books
-        "orderBy": "relevance",  # ADD THIS: Most relevant (popular) first
+        "langRestrict": "en",
+        "orderBy": "relevance",
     }
+
+    # Add API key if available
+    api_key = os.getenv("GOOGLE_BOOKS_API_KEY")
+    if api_key:
+        params["key"] = api_key
+        print(f"Using Google Books API key")
+    else:
+        print("Warning: No Google Books API key found")
 
     async with httpx.AsyncClient() as client:
         try:
@@ -29,6 +70,10 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
                 if book:
                     books.append(book)
 
+            # Only cache successful results with data
+            if books:
+                _set_cache(cache_key, books)
+
             return books
         except httpx.HTTPError as e:
             print(f"Error fetching from Google Books: {e}")
@@ -40,7 +85,6 @@ def extract_year(date_string: Optional[str]) -> Optional[int]:
     if not date_string:
         return None
     try:
-        # Take first 4 characters (the year)
         return int(date_string[:4])
     except (ValueError, IndexError):
         return None
@@ -91,13 +135,12 @@ def transform_google_book(item: dict) -> Optional[dict]:
 
 def parse_publish_year(date_string: Optional[str]) -> Optional[int]:
     """
-    Extract year from various date formats (e.g., '2020', '2020-01', '2020-01-15')
+    Extract year from various date formats
     """
     if not date_string:
         return None
 
     try:
-        # Just get the first 4 characters (the year)
         year = int(date_string[:4])
         return year if 1000 <= year <= 9999 else None
     except (ValueError, IndexError):

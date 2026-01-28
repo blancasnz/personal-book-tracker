@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 interface UpdateStatusModalProps {
   item: BookListItem;
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (newStatus?: ReadingStatus, newRating?: number) => void;
 }
 
 export default function UpdateStatusModal({
@@ -58,7 +58,7 @@ export default function UpdateStatusModal({
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
-      onClose();
+      onClose(status, rating); // Pass the new status and rating back
       toast.success("Status updated!");
     },
     onError: (error) => {
@@ -143,7 +143,7 @@ export default function UpdateStatusModal({
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-      onClick={onClose}
+      onClick={() => onClose()}
     >
       <div
         className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
@@ -193,7 +193,7 @@ export default function UpdateStatusModal({
         {/* Buttons */}
         <div className="flex gap-3 w-full">
           <button
-            onClick={onClose}
+            onClick={() => onClose()}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             Cancel

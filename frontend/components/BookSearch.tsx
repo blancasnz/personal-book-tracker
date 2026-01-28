@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { searchExternalBooks, addExternalBookToDb } from "@/lib/api";
 import { BookCreate, Book } from "@/types";
@@ -11,14 +11,24 @@ import BookDetailModal from "./BookDetailModal";
 import CuratedBookRow from "./CuratedBookRow";
 import NYTBookRow from "./NYTBookRow";
 import AwardWinnersRow from "./AwardWinnersRow";
+import { useSearchParams } from 'next/navigation';
 
 export default function BookSearch() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookForDetail, setSelectedBookForDetail] =
     useState<Book | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setSearchQuery(q);
+      setDebouncedQuery(q);
+    }
+  }, [searchParams]);
 
   const {
     data: searchResults,

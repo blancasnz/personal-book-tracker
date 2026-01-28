@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addExternalBookToDb } from "@/lib/api";
-import { Book, BookCreate } from "@/types";
+import { Book, BookCreate, BookListItem, ReadingStatus } from "@/types";
 import AddToListModal from "./lists/AddToListModal";
+import UpdateStatusModal from "./lists/UpdateStatusModal";
+import GenreBadges from "./ui/GenreBadges";
+import StatusBadge from "./ui/StatusBadge";
+import StarRating from "./ui/StarRating";
 import toast from "react-hot-toast";
 
 interface BookDetailModalProps {
   book: Book;
+  bookListItem?: BookListItem;
   isOpen: boolean;
   onClose: () => void;
   showAddButton?: boolean;
@@ -16,11 +21,28 @@ interface BookDetailModalProps {
 
 export default function BookDetailModal({
   book,
+  bookListItem,
   isOpen,
   onClose,
   showAddButton = false,
 }: BookDetailModalProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
+  // Track status locally so it updates immediately
+  const [currentStatus, setCurrentStatus] = useState<ReadingStatus | undefined>(
+    bookListItem?.status
+  );
+  const [currentRating, setCurrentRating] = useState<number | undefined>(
+    bookListItem?.rating ?? undefined // Convert null to undefined
+  );
+
+  // Update local state when bookListItem changes
+  useEffect(() => {
+    setCurrentStatus(bookListItem?.status);
+    setCurrentRating(bookListItem?.rating ?? undefined); // Convert null to undefined
+  }, [bookListItem]);
+
   const queryClient = useQueryClient();
 
   const addBookMutation = useMutation({
@@ -83,6 +105,43 @@ export default function BookDetailModal({
                   </h3>
                 </div>
 
+                {/* Status Badge - Clickable to update */}
+                {bookListItem && currentStatus && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                      Status:
+                    </span>
+                    <StatusBadge
+                      status={currentStatus}
+                      onClick={() => setShowStatusModal(true)}
+                    />
+                  </div>
+                )}
+
+                {/* Rating - Only show for finished books */}
+                {bookListItem && currentStatus === "finished" && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                      Your Rating:
+                    </span>
+                    <StarRating
+                      rating={currentRating || 0}
+                      onRate={() => {}}
+                      size="md"
+                    />
+                  </div>
+                )}
+
+                {/* Genres */}
+                {book.genres && book.genres.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                      Genres:
+                    </span>
+                    <GenreBadges genres={book.genres} maxVisible={10} />
+                  </div>
+                )}
+
                 {book.published_year && (
                   <div>
                     <span className="text-sm font-medium text-gray-500">
@@ -116,6 +175,18 @@ export default function BookDetailModal({
                   </div>
                 )}
 
+                {/* Notes - from bookListItem */}
+                {bookListItem?.notes && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                      Your Notes:
+                    </span>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg italic">
+                      "{bookListItem.notes}"
+                    </p>
+                  </div>
+                )}
+
                 {book.description && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-500 mb-2">
@@ -133,7 +204,7 @@ export default function BookDetailModal({
                   </div>
                 )}
 
-                {/* Add to Library Button - same as in search results */}
+                {/* Add to Library Button */}
                 {showAddButton && (
                   <button
                     onClick={() => addBookMutation.mutate(book as BookCreate)}
@@ -155,6 +226,28 @@ export default function BookDetailModal({
           book={selectedBook}
           isOpen={!!selectedBook}
           onClose={() => setSelectedBook(null)}
+        />
+      )}
+
+      {/* Update Status Modal */}
+      {showStatusModal && bookListItem && (
+        <UpdateStatusModal
+          item={bookListItem}
+          isOpen={showStatusModal}
+          onClose={(newStatus?: ReadingStatus, newRating?: number) => {
+            setShowStatusModal(false);
+            // Update local state immediately if new values provided
+            if (newStatus) {
+              setCurrentStatus(newStatus);
+            }
+            if (newRating !== undefined) {
+              setCurrentRating(newRating ?? undefined); // Convert null to undefined
+            }
+            // Also invalidate queries so the homepage updates
+            queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+            queryClient.invalidateQueries({ queryKey: ["list"] });
+            queryClient.invalidateQueries({ queryKey: ["lists"] });
+          }}
         />
       )}
     </>

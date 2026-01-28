@@ -104,7 +104,7 @@ def get_random_book(
 @router.get("/{list_id}", response_model=BookList)
 def get_list(
     list_id: int,
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
 ):
     """Get a specific list with all its books"""
