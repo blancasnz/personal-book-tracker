@@ -17,19 +17,19 @@ export default function BookCard({
 }: BookCardProps) {
   return (
     <div
-      className="cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+      className="cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-card-hover transition-all overflow-hidden border border-primary-100"
       onClick={() => onClickBook(book)}
     >
       {/* Book Cover */}
-      <div className="relative h-52 flex items-center justify-center bg-gray-50 p-3">
+      <div className="relative h-52 flex items-center justify-center bg-warm-50 p-3">
         {book.cover_url ? (
           <img
             src={book.cover_url}
             alt={book.title}
-            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-200"
+            className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-200 rounded-book book-cover-shadow"
           />
         ) : (
-          <span className="text-gray-400 text-sm">No cover</span>
+          <span className="text-pine-400 text-sm">No cover</span>
         )}
 
         {/* Quick Add Button */}
@@ -39,10 +39,10 @@ export default function BookCard({
             onAddBook(book as BookCreate);
           }}
           disabled={isAdding}
-          className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-green-50 disabled:opacity-50"
+          className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary-50 disabled:opacity-50"
           title="Add to library"
         >
-          <span className="text-sm leading-none">+</span>
+          <span className="text-sm leading-none text-primary-600">+</span>
         </button>
       </div>
 
@@ -50,22 +50,22 @@ export default function BookCard({
       <div className="p-3">
         {/* Badge - Rank or Award Year */}
         {(book.rank || book.awardYear) && (
-          <div className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded mb-1">
+          <div className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-0.5 rounded mb-1 font-medium">
             {book.rank ? `#${book.rank}` : `🏆 ${book.awardYear}`}
           </div>
         )}
 
         {/* Book Title */}
-        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+        <h4 className="text-sm font-semibold text-pine-900 line-clamp-2 mb-1">
           {book.title}
         </h4>
 
         {/* Author */}
-        <p className="text-xs text-gray-500 line-clamp-1">{book.author}</p>
+        <p className="text-xs text-pine-600 line-clamp-1">{book.author}</p>
 
         {/* Weeks on list (NYT only) */}
         {book.weeks_on_list && book.weeks_on_list > 1 && (
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-pine-500 mt-1">
             {book.weeks_on_list} weeks on list
           </p>
         )}

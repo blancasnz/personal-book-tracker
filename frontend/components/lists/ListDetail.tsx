@@ -90,7 +90,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Loading list...</p>
+        <p className="text-pine-600">Loading list...</p>
       </div>
     );
   }
@@ -109,34 +109,36 @@ export default function ListDetail({ listId }: ListDetailProps) {
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2">{list.name}</h1>
+            <h1 className="text-4xl font-bold text-pine-900 mb-2">
+              {list.name}
+            </h1>
 
             {/* Description or Add Description prompt */}
             {list.description ? (
-              <p className="text-gray-600 mb-3">{list.description}</p>
+              <p className="text-pine-600 mb-3">{list.description}</p>
             ) : (
               list.is_default === 0 && (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 mb-3"
+                  className="text-sm text-primary-600 hover:text-primary-800 mb-3"
                 >
                   + Add description
                 </button>
               )
             )}
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-pine-500">
               Created {new Date(list.created_at).toLocaleDateString()} •{" "}
               {list.items.length} {list.items.length === 1 ? "book" : "books"}
             </p>
           </div>
 
-          {/* Edit Button - Only for non-default lists */}
+          {/* Action Buttons */}
           <div className="flex gap-2">
             {/* Search button for ALL lists */}
             <button
               onClick={() => setIsSearchModalOpen(true)}
-              className="px-4 py-2 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg transition-colors flex items-center gap-2"
             >
               🔍 Add Books
             </button>
@@ -144,7 +146,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
             {/* Random button for ALL lists */}
             <button
               onClick={() => setIsRandomPickerOpen(true)}
-              className="px-4 py-2 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-accent-100 text-accent-700 hover:bg-accent-200 rounded-lg transition-colors flex items-center gap-2"
             >
               🎲 Random Book
             </button>
@@ -152,7 +154,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
             {/* Edit/Manage button for ALL lists */}
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-warm-100 hover:bg-warm-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2"
             >
               ✏️ Edit List
             </button>
@@ -160,26 +162,27 @@ export default function ListDetail({ listId }: ListDetailProps) {
         </div>
       </div>
 
-      {/* Sort Toggle - ADD THIS */}
+      {/* Sort Toggle */}
       {list && list.items.length > 0 && (
         <div className="mb-6 flex justify-end">
           <button
             onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2 text-sm"
+            className="px-4 py-2 bg-warm-100 hover:bg-warm-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2 text-sm"
           >
             {sortOrder === "desc" ? "↓ Newest First" : "↑ Oldest First"}
           </button>
         </div>
       )}
+
       {/* Books Grid */}
       {list.items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {list.items.map((item) => (
             <div
               key={item.id}
-              className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+              className="bg-white border border-primary-100 rounded-lg p-3 hover:shadow-card-hover transition-all"
             >
-              {/* Top Row: Heart (left) and Trash (right) */}
+              {/* Top Row: Heart (right aligned) */}
               <div className="flex justify-end mb-2">
                 <FavoriteHeart
                   listId={listId}
@@ -201,13 +204,13 @@ export default function ListDetail({ listId }: ListDetailProps) {
                     <img
                       src={item.book.cover_url}
                       alt={item.book.title}
-                      className="max-h-full max-w-full object-contain rounded-lg"
+                      className="max-h-full max-w-full object-contain rounded-book book-cover-shadow"
                     />
                   </div>
                 )}
 
                 <div className="mb-2">
-                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">
+                  <h3 className="font-semibold text-sm mb-1 line-clamp-2 text-pine-900">
                     {item.book.title}
                   </h3>
                   <StatusBadge
@@ -219,7 +222,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   />
                 </div>
 
-                <p className="text-gray-600 text-xs mb-2">{item.book.author}</p>
+                <p className="text-pine-600 text-xs mb-2">{item.book.author}</p>
 
                 {/* Genres - Clickable to edit */}
                 {item.book.genres && item.book.genres.length > 0 ? (
@@ -247,7 +250,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
                         genres: [],
                       });
                     }}
-                    className="mb-2 text-xs text-purple-600 hover:text-purple-800"
+                    className="mb-2 text-xs text-primary-600 hover:text-primary-800"
                   >
                     + Add genres
                   </button>
@@ -308,7 +311,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
                 )}
 
                 {item.book.published_year && (
-                  <p className="text-gray-400 text-xs mb-2">
+                  <p className="text-pine-400 text-xs mb-2">
                     {item.book.published_year &&
                       `Published: ${item.book.published_year} • `}
                     Added: {new Date(item.added_at).toLocaleDateString()}
@@ -319,16 +322,17 @@ export default function ListDetail({ listId }: ListDetailProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 mb-4">This list is empty.</p>
+        <div className="text-center py-12 bg-warm-50 rounded-lg border border-primary-100">
+          <p className="text-pine-500 mb-4">This list is empty.</p>
           <Link
             href="/search"
-            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-block px-6 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all"
           >
             Search for Books to Add
           </Link>
         </div>
       )}
+
       {selectedItem && (
         <UpdateStatusModal
           item={selectedItem}

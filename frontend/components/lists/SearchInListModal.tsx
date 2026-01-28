@@ -93,7 +93,7 @@ export default function SearchInListModal({
       await addBookToList(listId, {
         book_id: addedBook.id,
         status: status,
-        is_favorite: isAddingFromFavorites ? 1 : 0, // ADD THIS
+        is_favorite: isAddingFromFavorites ? 1 : 0,
       });
 
       // If status is to_read/reading/finished, also add to the corresponding default status list
@@ -152,21 +152,23 @@ export default function SearchInListModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-primary-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-3xl font-bold">Search & Add Books</h2>
-              <p className="text-gray-600">
+              <h2 className="text-3xl font-bold text-pine-900">
+                Search & Add Books
+              </h2>
+              <p className="text-pine-600">
                 Find books and add them to this list
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-3xl"
+              className="text-pine-400 hover:text-pine-600 text-3xl"
             >
               ×
             </button>
@@ -181,13 +183,13 @@ export default function SearchInListModal({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Search by title, author, or ISBN..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-3 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-pine-900"
                 autoFocus
               />
               <button
                 onClick={handleSearch}
                 disabled={isSearching || !query.trim()}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:bg-warm-300 disabled:cursor-not-allowed transition-all"
               >
                 {isSearching ? "Searching..." : "Search"}
               </button>
@@ -200,32 +202,32 @@ export default function SearchInListModal({
               {searchResults.results.map((book: any, index: number) => (
                 <div
                   key={index}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-primary-100 rounded-lg p-4 hover:shadow-card-hover transition-shadow"
                 >
                   <div className="flex gap-3">
                     {book.cover_url && (
                       <img
                         src={book.cover_url}
                         alt={book.title}
-                        className="w-20 h-28 object-cover rounded"
+                        className="w-20 h-28 object-cover rounded book-cover-shadow"
                       />
                     )}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-sm mb-1 line-clamp-2">
+                      <h3 className="font-semibold text-sm mb-1 line-clamp-2 text-pine-900">
                         {book.title}
                       </h3>
-                      <p className="text-gray-600 text-xs mb-2">
+                      <p className="text-pine-600 text-xs mb-2">
                         {book.author}
                       </p>
                       {book.published_year && (
-                        <p className="text-gray-500 text-xs mb-2">
+                        <p className="text-pine-500 text-xs mb-2">
                           {book.published_year}
                         </p>
                       )}
                       <button
                         onClick={() => addBookMutation.mutate(book)}
                         disabled={addBookMutation.isPending}
-                        className="w-full px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 text-xs"
+                        className="w-full px-3 py-1.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:bg-warm-300 text-xs transition-all"
                       >
                         {addBookMutation.isPending
                           ? "Adding..."
@@ -240,14 +242,14 @@ export default function SearchInListModal({
 
           {/* Empty State */}
           {searchResults && searchResults.results.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-pine-500">
               No books found. Try a different search.
             </div>
           )}
 
           {/* Initial State */}
           {!searchResults && !isSearching && (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-pine-400">
               <div className="text-5xl mb-3">🔍</div>
               <p>Search for books to add to your list</p>
             </div>
