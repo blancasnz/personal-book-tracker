@@ -135,28 +135,20 @@ export default function ListDetail({ listId }: ListDetailProps) {
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            {/* Search button for ALL lists */}
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="px-4 py-2 text-sm bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg transition-colors flex items-center gap-2"
-            >
-              🔍 Add Books
-            </button>
-
-            {/* Random button for ALL lists */}
+            {/* Random book picker */}
             <button
               onClick={() => setIsRandomPickerOpen(true)}
-              className="px-4 py-2 text-sm bg-accent-100 text-accent-700 hover:bg-accent-200 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-warm-200 hover:bg-primary-200 text-primary-800  rounded-lg transition-colors flex items-center gap-2 font-medium"
             >
-              🎲 Random Book
+              ✨ Pick Random Book
             </button>
 
-            {/* Edit/Manage button for ALL lists */}
+            {/* Edit/Manage list */}
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="px-4 py-2 text-sm bg-warm-100 hover:bg-warm-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-warm-200 hover:bg-primary-200 text-primary-800  rounded-lg transition-colors flex items-center gap-2 font-medium"
             >
-              ✏️ Edit List
+              ✏️ Manage List
             </button>
           </div>
         </div>
@@ -167,7 +159,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
         <div className="mb-6 flex justify-end">
           <button
             onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-            className="px-4 py-2 bg-warm-100 hover:bg-warm-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2 text-sm"
+            className="px-4 py-2 bg-warm-200 hover:bg-primary-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2 text-sm"
           >
             {sortOrder === "desc" ? "↓ Newest First" : "↑ Oldest First"}
           </button>

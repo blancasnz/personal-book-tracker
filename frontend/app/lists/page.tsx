@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getLists, getList, deleteList } from "@/lib/api";
+import { getLists, deleteList } from "@/lib/api";
 import CreateListModal from "@/components/lists/CreateListModal";
 import ListDetail from "@/components/lists/ListDetail";
 import Link from "next/link";
@@ -18,7 +18,6 @@ export default function ListsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       toast.success("List deleted");
-      // Reset selected list if it was deleted
       setSelectedListId(null);
     },
     onError: (error) => {
@@ -81,7 +80,7 @@ export default function ListsPage() {
               </h1>
             </div>
 
-            {/* Explore books button - Far Right (green) */}
+            {/* Explore books button */}
             <Link
               href="/search"
               className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
@@ -206,7 +205,7 @@ export default function ListsPage() {
                     </>
                   )}
 
-                  {/* Create List Button - At Bottom with proper spacing */}
+                  {/* Create List Button */}
                   <button
                     onClick={() => setIsModalOpen(true)}
                     className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all shadow-sm hover:shadow-md text-sm font-medium"
