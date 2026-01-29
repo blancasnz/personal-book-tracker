@@ -27,7 +27,12 @@ export default function ListsPage() {
     },
   });
 
-  const handleDelete = (listId: number, listName: string, isDefault: number, e: React.MouseEvent) => {
+  const handleDelete = (
+    listId: number,
+    listName: string,
+    isDefault: number,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
     if (isDefault === 1) {
       toast.error("Cannot delete default lists");
@@ -54,7 +59,11 @@ export default function ListsPage() {
   const currentlyReadingList = lists?.find(
     (list) => list.name.toLowerCase() === "currently reading"
   );
-  const defaultListId = selectedListId || wantToReadList?.id || currentlyReadingList?.id || lists?.[0]?.id;
+  const defaultListId =
+    selectedListId ||
+    wantToReadList?.id ||
+    currentlyReadingList?.id ||
+    lists?.[0]?.id;
 
   return (
     <main className="min-h-screen gradient-soft">
@@ -62,23 +71,23 @@ export default function ListsPage() {
       <div className="bg-white border-b border-primary-100 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Home button - Left */}
-            <Link
-              href="/"
-              className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
-            >
-              ← Home
-            </Link>
+            {/* Empty spacer for balance - Left */}
+            <div className="w-40"></div>
 
             {/* Title - Center */}
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
-                My Lists
+                Curations
               </h1>
             </div>
 
-            {/* Spacer for balance */}
-            <div className="w-20"></div>
+            {/* Explore books button - Far Right (green) */}
+            <Link
+              href="/search"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
+            >
+              Explore Books
+            </Link>
           </div>
         </div>
       </div>
@@ -89,7 +98,7 @@ export default function ListsPage() {
           <aside className="w-64 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100 sticky top-8">
               <h2 className="text-lg font-semibold text-pine-900 mb-4">
-                My Collections
+                My Lists
               </h2>
 
               {/* Lists Navigation */}
@@ -112,14 +121,21 @@ export default function ListsPage() {
                 <>
                   <nav className="space-y-1 mb-4">
                     {/* Default Lists in Specific Order - Favorites first */}
-                    {["Favorites", "Want to Read", "Finished", "Currently Reading"]
-                      .map(listName => lists.find(list => list.is_default === 1 && list.name === listName))
+                    {[
+                      "Favorites",
+                      "Want to Read",
+                      "Finished",
+                      "Currently Reading",
+                    ]
+                      .map((listName) =>
+                        lists.find(
+                          (list) =>
+                            list.is_default === 1 && list.name === listName
+                        )
+                      )
                       .filter(Boolean)
                       .map((list) => (
-                        <div
-                          key={list!.id}
-                          className="relative group"
-                        >
+                        <div key={list!.id} className="relative group">
                           <button
                             onClick={() => setSelectedListId(list!.id)}
                             className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors text-sm ${
@@ -140,7 +156,7 @@ export default function ListsPage() {
                   </nav>
 
                   {/* Divider and label for user lists */}
-                  {lists.some(list => list.is_default === 0) && (
+                  {lists.some((list) => list.is_default === 0) && (
                     <>
                       <div className="my-4 border-t border-primary-200" />
                       <p className="text-xs font-medium text-pine-500 uppercase tracking-wide mb-3 px-2">
@@ -149,12 +165,9 @@ export default function ListsPage() {
                       <nav className="space-y-1 mb-4">
                         {/* User Created Lists */}
                         {lists
-                          .filter(list => list.is_default === 0)
+                          .filter((list) => list.is_default === 0)
                           .map((list) => (
-                            <div
-                              key={list.id}
-                              className="relative group"
-                            >
+                            <div key={list.id} className="relative group">
                               <div
                                 onClick={() => setSelectedListId(list.id)}
                                 className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors text-sm ${
@@ -170,7 +183,14 @@ export default function ListsPage() {
                                       {list.item_count || 0}
                                     </span>
                                     <button
-                                      onClick={(e) => handleDelete(list.id, list.name, list.is_default, e)}
+                                      onClick={(e) =>
+                                        handleDelete(
+                                          list.id,
+                                          list.name,
+                                          list.is_default,
+                                          e
+                                        )
+                                      }
                                       disabled={deleteMutation.isPending}
                                       className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity text-xs"
                                       title="Delete list"
