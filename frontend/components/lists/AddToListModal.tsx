@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getLists, addBookToList } from "@/lib/api";
-import { Book, ReadingStatus } from "@/types";
+import { getLists, addBookToList, addExternalBookToDb } from "@/lib/api";
+import { Book, BookCreate, ReadingStatus } from "@/types";
 import toast from "react-hot-toast";
-import StarRating from "../ui/StarRating";
 
 interface AddToListModalProps {
   book: Book;
@@ -29,6 +28,20 @@ export default function AddToListModal({
     enabled: isOpen,
   });
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   // Auto-detect status based on list name
   const getStatusForList = (listName: string): ReadingStatus => {
     const lowerName = listName.toLowerCase();
@@ -45,16 +58,24 @@ export default function AddToListModal({
   };
 
   const addToListMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!selectedListId) throw new Error("No list selected");
 
+      // Step 1: Add book to database if it doesn't have an ID
+      let bookId = book.id;
+      if (!bookId) {
+        const addedBook = await addExternalBookToDb(book as BookCreate);
+        bookId = addedBook.id;
+      }
+
+      // Step 2: Add book to selected list
       const selectedList = lists?.find((l) => l.id === selectedListId);
       const status = selectedList
         ? getStatusForList(selectedList.name)
         : "to_read";
 
       return addBookToList(selectedListId, {
-        book_id: book.id,
+        book_id: bookId,
         notes: notes.trim() || undefined,
         status: status,
       });
@@ -63,6 +84,8 @@ export default function AddToListModal({
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+      queryClient.invalidateQueries({ queryKey: ["book-check"] });
       setSelectedListId(null);
       setNotes("");
       onClose();

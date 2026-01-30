@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, DateTime
+from datetime import datetime, timezone
 from app.database import Base
 
 
@@ -14,3 +15,5 @@ class Book(Base):
     published_year = Column(Integer, nullable=True)
     page_count = Column(Integer, nullable=True)
     genres = Column(Text)
+    format = Column(String(50), nullable=True)
+    edition = Column(String(100), nullable=True)

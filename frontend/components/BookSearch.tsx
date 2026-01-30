@@ -8,6 +8,7 @@ import AddToListModal from "./lists/AddToListModal";
 import { BookCardSkeleton } from "./ui/Skeleton";
 import toast from "react-hot-toast";
 import BookDetailModal from "./BookDetailModal";
+import BookCard from "./BookCard";
 import NYTBookRow from "./NYTBookRow";
 import AwardWinnersRow from "./AwardWinnersRow";
 import { useSearchParams } from "next/navigation";
@@ -39,33 +40,11 @@ export default function BookSearch() {
     enabled: debouncedQuery.length > 0,
   });
 
-  const addBookMutation = useMutation({
-    mutationFn: (book: BookCreate) => addExternalBookToDb(book),
-    onSuccess: (addedBook) => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      setSelectedBook(addedBook);
-      toast.success("Book added! Now add it to a list.");
-    },
-    onError: (error) => {
-      console.error("Error adding book:", error);
-      toast.error("Failed to add book");
-    },
-  });
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setDebouncedQuery(searchQuery.trim());
     }
-  };
-
-  const handleCuratedSearch = (query: string) => {
-    setSearchQuery(query);
-    setDebouncedQuery(query);
-  };
-
-  const handleAddBook = (book: BookCreate) => {
-    addBookMutation.mutate(book);
   };
 
   const handleClearSearch = () => {
@@ -221,51 +200,12 @@ export default function BookSearch() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {searchResults.results.map((book: any, index: number) => (
-              <div
+              <BookCard
                 key={index}
-                className="border border-primary-100 rounded-lg p-4 hover:shadow-card-hover transition-all bg-white"
-              >
-                <div
-                  onClick={() => setSelectedBookForDetail(book)}
-                  className="cursor-pointer"
-                >
-                  {book.cover_url && (
-                    <img
-                      src={book.cover_url}
-                      alt={book.title}
-                      className="w-full h-48 object-contain mb-3 rounded-book book-cover-shadow"
-                    />
-                  )}
-
-                  <h3 className="font-semibold text-lg mb-1 line-clamp-2 text-pine-900">
-                    {book.title}
-                  </h3>
-                  <p className="text-pine-600 text-sm mb-2">{book.author}</p>
-
-                  {book.published_year && (
-                    <p className="text-pine-500 text-xs mb-2">
-                      Published: {book.published_year}
-                    </p>
-                  )}
-
-                  {book.description && (
-                    <p className="text-pine-600 text-sm mb-3 line-clamp-3">
-                      {book.description}
-                    </p>
-                  )}
-                </div>
-                {/* Button NOT clickable for details - only adds to library */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent opening modal
-                    handleAddBook(book);
-                  }}
-                  disabled={addBookMutation.isPending}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:bg-warm-300 text-sm font-medium transition-all"
-                >
-                  {addBookMutation.isPending ? "Adding..." : "Add to Library"}
-                </button>
-              </div>
+                book={book}
+                onClickCard={() => setSelectedBookForDetail(book)}
+                onAddToList={() => setSelectedBook(book)}
+              />
             ))}
           </div>
         </div>
@@ -282,14 +222,20 @@ export default function BookSearch() {
         <AddToListModal
           book={selectedBook}
           isOpen={!!selectedBook}
-          onClose={() => setSelectedBook(null)}
+          onClose={() => {
+            setSelectedBook(null);
+            queryClient.invalidateQueries({ queryKey: ["book-check"] });
+          }}
         />
       )}
       {selectedBookForDetail && (
         <BookDetailModal
           book={selectedBookForDetail}
           isOpen={!!selectedBookForDetail}
-          onClose={() => setSelectedBookForDetail(null)}
+          onClose={() => {
+            setSelectedBookForDetail(null);
+            queryClient.invalidateQueries({ queryKey: ["book-check"] });
+          }}
           showAddButton={true}
         />
       )}

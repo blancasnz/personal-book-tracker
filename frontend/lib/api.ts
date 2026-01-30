@@ -33,6 +33,13 @@ export const addExternalBookToDb = async (book: BookCreate): Promise<Book> => {
   return response.data;
 };
 
+export const getBookEditions = async (title: string, author: string) => {
+  const response = await apiClient.get('/search/editions', {
+    params: { title, author }
+  });
+  return response.data;
+};
+
 // Books
 export const getBooks = async (): Promise<Book[]> => {
   const response = await apiClient.get('/books/');
@@ -94,9 +101,6 @@ export const updateBook = async (bookId: number, update: Partial<BookCreate>) =>
   return response.data;
 };
 
-export const removeBookFromList = async (listId: number, bookId: number) => {
-  await apiClient.delete(`/lists/${listId}/books/${bookId}`);
-};
 
 export const deleteList = async (listId: number) => {
   await apiClient.delete(`/lists/${listId}`);
@@ -141,5 +145,20 @@ export const getRandomBook = async (
 
 export const getNYTBestsellers = async (listName: string = "combined-print-and-e-book-fiction") => {
   const response = await apiClient.get(`/nyt/bestsellers?list_name=${listName}`);
+  return response.data;
+};
+
+export const checkBookExists = async (isbn?: string, title?: string, author?: string) => {
+  const params: any = {};
+  if (isbn) params.isbn = isbn;
+  if (title) params.title = title;
+  if (author) params.author = author;
+  
+  const response = await apiClient.get('/books/check', { params });
+  return response.data;
+};
+
+export const removeBookFromList = async (listId: number, itemId: number) => {
+  const response = await apiClient.delete(`/lists/${listId}/books/${itemId}`);
   return response.data;
 };

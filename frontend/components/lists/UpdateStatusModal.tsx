@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   moveBookStatus,
@@ -29,6 +29,19 @@ export default function UpdateStatusModal({
   const [showRating, setShowRating] = useState(item.status === "finished");
   const queryClient = useQueryClient();
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
   const updateMutation = useMutation({
     mutationFn: async () => {
       // First move the book to new status list
@@ -82,7 +95,7 @@ export default function UpdateStatusModal({
         );
         if (hasBook) {
           try {
-            await removeBookFromList(list.id, item.book.id);
+            await removeBookFromList(list.id, hasBook.id);
           } catch {
             // Ignore errors
           }

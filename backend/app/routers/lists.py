@@ -163,10 +163,21 @@ def update_book_in_list(
     return result
 
 
-@router.delete("/{list_id}/books/{book_id}", status_code=204)
-def remove_book_from_list(list_id: int, book_id: int, db: Session = Depends(get_db)):
+@router.delete("/{list_id}/books/{item_id}", status_code=204)
+def remove_book_from_list(list_id: int, item_id: int, db: Session = Depends(get_db)):
     """Remove a book from a list"""
-    success = crud_list.remove_book_from_list(db, list_id=list_id, book_id=book_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Book not in list")
+    # Get the item
+    item = (
+        db.query(BookListItem)
+        .filter(BookListItem.id == item_id, BookListItem.book_list_id == list_id)
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Book not found in this list")
+
+    # Delete the item
+    db.delete(item)
+    db.commit()
+
     return None

@@ -31,9 +31,82 @@ def _set_cache(key: str, data: List[dict]):
         print(f"Cached {len(data)} results for: {key}")
 
 
+def _calculate_book_quality_score(book: dict) -> int:
+    """Calculate quality score for a book based on available information"""
+    score = 0
+
+    # Essential fields
+    if book.get("cover_url"):
+        score += 3
+    if book.get("description"):
+        score += 2
+    if book.get("page_count"):
+        score += 2
+    if book.get("isbn"):
+        score += 1
+    if book.get("published_year"):
+        score += 1
+    if book.get("genres"):
+        score += 1
+
+    return score
+
+
+def _deduplicate_books(books: List[dict]) -> List[dict]:
+    """
+    Remove duplicate books, keeping the one with most information
+    Deduplicates by title + author (case-insensitive)
+    """
+    seen = {}
+
+    for book in books:
+        # Create a key from normalized title and author
+        title = book.get("title", "").lower().strip()
+        author = book.get("author", "").lower().strip()
+        key = f"{title}|{author}"
+
+        # Skip if we don't have title or author
+        if not title or not author or author == "unknown author":
+            continue
+
+        # Calculate quality score
+        quality_score = _calculate_book_quality_score(book)
+
+        # Keep the book with higher quality score
+        if key not in seen or quality_score > seen[key]["score"]:
+            seen[key] = {"book": book, "score": quality_score}
+
+    # Return only the books, sorted by quality score (highest first)
+    return [
+        item["book"]
+        for item in sorted(seen.values(), key=lambda x: x["score"], reverse=True)
+    ]
+
+
+def _filter_low_quality_books(books: List[dict]) -> List[dict]:
+    """Filter out books with insufficient information"""
+    filtered = []
+
+    for book in books:
+        # Must have at least: title, author, and cover
+        if not book.get("title"):
+            continue
+        if not book.get("author") or book.get("author") == "Unknown Author":
+            continue
+        if not book.get("cover_url"):
+            continue
+
+        # Calculate quality score - minimum threshold of 5
+        quality_score = _calculate_book_quality_score(book)
+        if quality_score >= 5:
+            filtered.append(book)
+
+    return filtered
+
+
 async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
     """
-    Search Google Books API and return results
+    Search Google Books API and return deduplicated, high-quality results
     """
     # Check cache first
     cache_key = f"search:{query}:{max_results}"
@@ -69,6 +142,15 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
                 book = transform_google_book(item)
                 if book:
                     books.append(book)
+
+            # Filter out low-quality books
+            books = _filter_low_quality_books(books)
+
+            # Deduplicate, keeping best version of each book
+            books = _deduplicate_books(books)
+
+            # Limit to requested max_results after deduplication
+            books = books[:max_results]
 
             # Only cache successful results with data
             if books:

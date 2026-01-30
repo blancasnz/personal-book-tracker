@@ -9,6 +9,8 @@ export interface Book {
   published_year?: number | null;
   page_count?: number | null;
   genres?: string[];
+  format?: string | null;
+  edition?: string | null;
 }
 
 export interface BookCreate {
@@ -20,6 +22,8 @@ export interface BookCreate {
   published_year?: number;
   page_count?: number;
   genres?: string[];
+  format?: string | null;
+  edition?: string | null;
 }
 
 export interface BookUpdate {

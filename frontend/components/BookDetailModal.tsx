@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addExternalBookToDb } from "@/lib/api";
-import { Book, BookCreate, BookListItem, ReadingStatus } from "@/types";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { checkBookExists } from "@/lib/api";
+import { Book, BookListItem, ReadingStatus } from "@/types";
 import AddToListModal from "./lists/AddToListModal";
 import UpdateStatusModal from "./lists/UpdateStatusModal";
 import GenreBadges from "./ui/GenreBadges";
 import StatusBadge from "./ui/StatusBadge";
 import StarRating from "./ui/StarRating";
 import toast from "react-hot-toast";
+import EditionSelector from "./EditionSelector";
+import ListSelector from "./ListSelector";
 
 interface BookDetailModalProps {
   book: Book;
@@ -28,37 +30,64 @@ export default function BookDetailModal({
 }: BookDetailModalProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [currentBook, setCurrentBook] = useState<Book>(book);
+  const [showExistingLists, setShowExistingLists] = useState(false);
+  const [selectedItemForUpdate, setSelectedItemForUpdate] = useState<any>(null);
 
   // Track status locally so it updates immediately
   const [currentStatus, setCurrentStatus] = useState<ReadingStatus | undefined>(
     bookListItem?.status
   );
   const [currentRating, setCurrentRating] = useState<number | undefined>(
-    bookListItem?.rating ?? undefined // Convert null to undefined
+    bookListItem?.rating ?? undefined
   );
 
-  // Update local state when bookListItem changes
+  useEffect(() => {
+    setCurrentBook(book);
+  }, [book]);
+
   useEffect(() => {
     setCurrentStatus(bookListItem?.status);
-    setCurrentRating(bookListItem?.rating ?? undefined); // Convert null to undefined
+    setCurrentRating(bookListItem?.rating ?? undefined);
   }, [bookListItem]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   const queryClient = useQueryClient();
 
-  const addBookMutation = useMutation({
-    mutationFn: (bookData: BookCreate) => addExternalBookToDb(bookData),
-    onSuccess: (addedBook) => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      setSelectedBook(addedBook);
-    },
-    onError: (error: any) => {
-      if (error.response?.data?.detail?.includes("UNIQUE constraint")) {
-        toast.error("Book already in your library");
-      } else {
-        toast.error("Failed to add book");
-      }
-    },
+  // Check if book already exists in library
+  const { data: bookCheck, refetch: refetchBookCheck } = useQuery({
+    queryKey: ["book-check", book.isbn, book.title, book.author],
+    queryFn: () =>
+      checkBookExists(book.isbn ?? undefined, book.title, book.author),
+    enabled: isOpen && showAddButton,
   });
+
+  const bookExists = bookCheck?.exists || false;
+  const existingLists = bookCheck?.lists || [];
+
+  const statusLabels: Record<ReadingStatus, string> = {
+    to_read: "Want to Read",
+    reading: "Currently Reading",
+    finished: "Finished",
+  };
+
+  const statusColors: Record<ReadingStatus, string> = {
+    to_read: "bg-blue-100 text-blue-800",
+    reading: "bg-green-100 text-green-800",
+    finished: "bg-purple-100 text-purple-800",
+  };
 
   if (!isOpen) return null;
 
@@ -187,15 +216,57 @@ export default function BookDetailModal({
                   </div>
                 )}
 
-                {/* Add to Library Button */}
+                {/* Add to List Section OR Show Existing Lists */}
                 {showAddButton && (
-                  <button
-                    onClick={() => addBookMutation.mutate(book as BookCreate)}
-                    disabled={addBookMutation.isPending}
-                    className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:bg-warm-300 transition-all font-medium shadow-sm"
-                  >
-                    {addBookMutation.isPending ? "Adding..." : "Add to Library"}
-                  </button>
+                  <div>
+                    {/* Edition Selector */}
+                    <div>
+                      <span className="text-sm font-medium text-pine-600 block mb-2">
+                        Edition:
+                      </span>
+                      <EditionSelector
+                        book={book}
+                        onSelectEdition={(edition) => {
+                          const mergedBook = {
+                            ...book,
+                            ...edition,
+                            description:
+                              book.description || edition.description,
+                            genres:
+                              book.genres && book.genres.length > 0
+                                ? book.genres
+                                : edition.genres,
+                          };
+                          setCurrentBook(mergedBook);
+                        }}
+                        selectedFormat={currentBook.format ?? undefined}
+                      />
+                    </div>
+
+                    {/* Show existing lists with toggle selector */}
+                    {bookExists && existingLists.length > 0 ? (
+                      <div className="mt-4">
+                        <span className="text-sm font-medium text-pine-600 block mb-2">
+                          Manage Lists:
+                        </span>
+                        <ListSelector
+                          book={bookCheck.book}
+                          existingLists={existingLists}
+                          onUpdate={refetchBookCheck}
+                        />
+                      </div>
+                    ) : null}
+
+                    {/* Add to List Button */}
+                    {existingLists.length === 0 && (
+                      <button
+                        onClick={() => setSelectedBook(currentBook)}
+                        className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm"
+                      >
+                        Add to List
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -203,33 +274,36 @@ export default function BookDetailModal({
         </div>
       </div>
 
-      {/* Add to List Modal - opens after adding to library */}
+      {/* Add to List Modal */}
       {selectedBook && (
         <AddToListModal
           book={selectedBook}
           isOpen={!!selectedBook}
-          onClose={() => setSelectedBook(null)}
+          onClose={() => {
+            setSelectedBook(null);
+            refetchBookCheck(); // Refresh to show new list
+          }}
         />
       )}
 
       {/* Update Status Modal */}
-      {showStatusModal && bookListItem && (
+      {showStatusModal && (bookListItem || selectedItemForUpdate) && (
         <UpdateStatusModal
-          item={bookListItem}
+          item={selectedItemForUpdate || bookListItem!}
           isOpen={showStatusModal}
           onClose={(newStatus?: ReadingStatus, newRating?: number) => {
             setShowStatusModal(false);
-            // Update local state immediately if new values provided
-            if (newStatus) {
+            setSelectedItemForUpdate(null);
+            if (newStatus && bookListItem) {
               setCurrentStatus(newStatus);
             }
-            if (newRating !== undefined) {
-              setCurrentRating(newRating ?? undefined); // Convert null to undefined
+            if (newRating !== undefined && bookListItem) {
+              setCurrentRating(newRating ?? undefined);
             }
-            // Also invalidate queries so the homepage updates
             queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
             queryClient.invalidateQueries({ queryKey: ["list"] });
             queryClient.invalidateQueries({ queryKey: ["lists"] });
+            refetchBookCheck(); // Refresh status display
           }}
         />
       )}
