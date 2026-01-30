@@ -70,16 +70,18 @@ export default function BookDetailModal({
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-primary-100 shadow-card"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6">
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-3xl font-bold pr-8">{book.title}</h2>
+              <h2 className="text-3xl font-bold text-pine-900 pr-8">
+                {book.title}
+              </h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
+                className="text-pine-400 hover:text-pine-600 text-3xl leading-none"
               >
                 ×
               </button>
@@ -92,15 +94,16 @@ export default function BookDetailModal({
                   <img
                     src={book.cover_url}
                     alt={book.title}
-                    className="w-48 h-72 object-contain rounded-lg shadow-lg mx-auto md:mx-0"
+                    className="w-48 h-72 object-contain rounded-book book-cover-shadow mx-auto md:mx-0"
                   />
                 </div>
               )}
 
               {/* Book Details */}
               <div className="flex-1 space-y-4">
+                {/* Author */}
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-xl font-semibold text-pine-900">
                     {book.author}
                   </h3>
                 </div>
@@ -108,7 +111,7 @@ export default function BookDetailModal({
                 {/* Status Badge - Clickable to update */}
                 {bookListItem && currentStatus && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                    <span className="text-sm font-medium text-pine-600 block mb-2">
                       Status:
                     </span>
                     <StatusBadge
@@ -121,7 +124,7 @@ export default function BookDetailModal({
                 {/* Rating - Only show for finished books */}
                 {bookListItem && currentStatus === "finished" && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                    <span className="text-sm font-medium text-pine-600 block mb-2">
                       Your Rating:
                     </span>
                     <StarRating
@@ -135,42 +138,21 @@ export default function BookDetailModal({
                 {/* Genres */}
                 {book.genres && book.genres.length > 0 && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                    <span className="text-sm font-medium text-pine-600 block mb-2">
                       Genres:
                     </span>
                     <GenreBadges genres={book.genres} maxVisible={10} />
                   </div>
                 )}
 
-                {book.published_year && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">
-                      Published:
-                    </span>
-                    <span className="ml-2 text-gray-700">
-                      {book.published_year}
-                    </span>
-                  </div>
-                )}
-
+                {/* Page Count */}
                 {book.page_count && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-sm font-medium text-pine-600">
                       Pages:
                     </span>
-                    <span className="ml-2 text-gray-700">
+                    <span className="ml-2 text-pine-800">
                       {book.page_count}
-                    </span>
-                  </div>
-                )}
-
-                {book.isbn && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">
-                      ISBN:
-                    </span>
-                    <span className="ml-2 text-gray-700 font-mono text-sm">
-                      {book.isbn}
                     </span>
                   </div>
                 )}
@@ -178,28 +160,29 @@ export default function BookDetailModal({
                 {/* Notes - from bookListItem */}
                 {bookListItem?.notes && (
                   <div>
-                    <span className="text-sm font-medium text-gray-500 block mb-2">
+                    <span className="text-sm font-medium text-pine-600 block mb-2">
                       Your Notes:
                     </span>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg italic">
+                    <p className="text-pine-700 bg-primary-50 p-3 rounded-lg italic border border-primary-100">
                       "{bookListItem.notes}"
                     </p>
                   </div>
                 )}
 
+                {/* Description */}
                 {book.description && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    <h4 className="text-sm font-medium text-pine-600 mb-2">
                       Description:
                     </h4>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-pine-700 leading-relaxed">
                       {book.description}
                     </p>
                   </div>
                 )}
 
                 {!book.description && (
-                  <div className="text-gray-400 italic">
+                  <div className="text-pine-400 italic">
                     No description available
                   </div>
                 )}
@@ -209,7 +192,7 @@ export default function BookDetailModal({
                   <button
                     onClick={() => addBookMutation.mutate(book as BookCreate)}
                     disabled={addBookMutation.isPending}
-                    className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors font-medium"
+                    className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:bg-warm-300 transition-all font-medium shadow-sm"
                   >
                     {addBookMutation.isPending ? "Adding..." : "Add to Library"}
                   </button>
