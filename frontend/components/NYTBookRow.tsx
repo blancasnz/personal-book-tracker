@@ -125,7 +125,7 @@ export default function NYTBookRow({ listName }: NYTBookRowProps) {
         {/* See All Button */}
         <button
           onClick={() => router.push(`/search/nyt/${listName}`)}
-          className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+          className="px-4 py-2 text-sm bg-warm-200 hover:bg-primary-200 text-primary-800  rounded-lg transition-colors flex items-center gap-2 font-medium"
         >
           See all {books.length} books →
         </button>

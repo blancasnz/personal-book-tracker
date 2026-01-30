@@ -12,8 +12,8 @@ import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
 const AWARD_TITLES: Record<string, string> = {
-  pulitzer: "🏆 Pulitzer Prize Winners",
-  booker: "🏆 Booker Prize Winners",
+  pulitzer: "Pulitzer Prize Winners",
+  booker: "Booker Prize Winners",
 };
 
 export default function AwardsPage() {
@@ -88,7 +88,32 @@ export default function AwardsPage() {
     : books;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-soft">
+      {/* Header Banner */}
+      <div className="bg-white border-b border-primary-100 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between relative">
+            {/* Back to Discover - Left */}
+            <button
+              onClick={() => router.push("/search")}
+              className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
+            >
+              ← Back to Discover
+            </button>
+
+            {/* Title - Center */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent mb-1">
+                {title}
+              </h1>
+            </div>
+
+            {/* Empty spacer for balance */}
+            <div className="w-32"></div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="mb-8">
@@ -98,34 +123,30 @@ export default function AwardsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for books..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-pine-900"
             />
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm"
             >
               Search
             </button>
           </div>
         </form>
-
-        {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-pine-600">
             {winners.length} award-winning books from{" "}
             {winners[winners.length - 1].year} to {winners[0].year}
           </p>
         </div>
-
         {/* Loading State */}
         {isLoading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="w-full h-48 bg-gray-200 rounded-lg mb-2" />
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-1" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="w-full h-48 bg-warm-100 rounded-book mb-2" />
+                <div className="h-4 bg-warm-100 rounded w-3/4 mb-1" />
+                <div className="h-3 bg-warm-100 rounded w-1/2" />
               </div>
             ))}
           </div>
@@ -148,20 +169,10 @@ export default function AwardsPage() {
 
         {/* No Results */}
         {!isLoading && filteredBooks.length === 0 && searchQuery && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-pine-500">
             No books match "{searchQuery}" in this list.
           </div>
         )}
-
-        {/* Back Button */}
-        <div className="mt-12 pt-6 border-t border-gray-200">
-          <button
-            onClick={() => router.push("/search")}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            ← Back to Discover
-          </button>
-        </div>
       </div>
 
       {/* Add to List Modal */}

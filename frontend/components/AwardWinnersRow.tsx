@@ -16,6 +16,7 @@ export const PULITZER_WINNERS = [
   { title: "Demon Copperhead", author: "Barbara Kingsolver", year: 2023 },
   { title: "The Netanyahus", author: "Joshua Cohen", year: 2022 },
   { title: "The Night Watchman", author: "Louise Erdrich", year: 2021 },
+  { title: "The Nickel Boys", author: "Colson Whitehead", year: 2020 },
   { title: "The Overstory", author: "Richard Powers", year: 2019 },
   { title: "Less", author: "Andrew Sean Greer", year: 2018 },
   { title: "The Underground Railroad", author: "Colson Whitehead", year: 2017 },
@@ -47,8 +48,15 @@ export const PULITZER_WINNERS = [
 
 // Booker Prize Winners (2000-2024)
 export const BOOKER_WINNERS = [
+  { title: "Flesh", author: "David Szalay", year: 2025 },
   { title: "Orbital", author: "Samantha Harvey", year: 2024 },
   { title: "Prophet Song", author: "Paul Lynch", year: 2023 },
+  {
+    title: "The Seven Moons of Maali Almeida",
+    author: "Shehan Karunatilaka",
+    year: 2022,
+  },
+  { title: "The Promise", author: "Damon Galgut", year: 2021 },
   { title: "Shuggie Bain", author: "Douglas Stuart", year: 2020 },
   { title: "The Testaments", author: "Margaret Atwood", year: 2019 },
   { title: "Girl, Woman, Other", author: "Bernardine Evaristo", year: 2019 },
@@ -221,7 +229,7 @@ export default function AwardWinnersRow({
         {/* See All Button */}
         <button
           onClick={() => router.push(`/search/awards/${awardType}`)}
-          className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+          className="px-4 py-2 text-sm bg-warm-200 hover:bg-primary-200 text-primary-800  rounded-lg transition-colors flex items-center gap-2 font-medium"
         >
           See all{" "}
           {awardType === "pulitzer"

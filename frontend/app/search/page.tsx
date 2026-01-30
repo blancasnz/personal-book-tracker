@@ -3,26 +3,35 @@ import Link from "next/link";
 
 export default function SearchPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Discover Books
+    <main className="min-h-screen gradient-soft">
+      {/* Header Banner - matches Lists page */}
+      <div className="bg-white border-b border-primary-100 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between relative">
+            {/* Empty spacer for balance */}
+            <div className="w-40"></div>
+
+            {/* Title - Center */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent mb-1">
+                Explore Books
               </h1>
-              <p className="text-gray-600">
-                Search millions of books and add them to your library
-              </p>
             </div>
+
+            {/* My Curations button - Right (green) */}
             <Link
-              href="/"
-              className="px-6 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors shadow-sm"
+              href="/lists"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
             >
-              ← Home
+              My Curations
             </Link>
           </div>
+        </div>
+      </div>
 
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
           <BookSearch />
         </div>
       </div>
