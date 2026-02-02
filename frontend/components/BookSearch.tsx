@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { searchExternalBooks, addExternalBookToDb } from "@/lib/api";
-import { BookCreate, Book } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { searchExternalBooks } from "@/lib/api";
+import { Book } from "@/types";
 import AddToListModal from "./lists/AddToListModal";
 import { BookCardSkeleton } from "./ui/Skeleton";
-import toast from "react-hot-toast";
-import BookDetailModal from "./BookDetailModal";
 import BookCard from "./BookCard";
 import NYTBookRow from "./NYTBookRow";
 import AwardWinnersRow from "./AwardWinnersRow";
@@ -18,8 +16,6 @@ export default function BookSearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [selectedBookForDetail, setSelectedBookForDetail] =
-    useState<Book | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -203,7 +199,6 @@ export default function BookSearch() {
               <BookCard
                 key={index}
                 book={book}
-                onClickCard={() => setSelectedBookForDetail(book)}
                 onAddToList={() => setSelectedBook(book)}
               />
             ))}
@@ -226,17 +221,6 @@ export default function BookSearch() {
             setSelectedBook(null);
             queryClient.invalidateQueries({ queryKey: ["book-check"] });
           }}
-        />
-      )}
-      {selectedBookForDetail && (
-        <BookDetailModal
-          book={selectedBookForDetail}
-          isOpen={!!selectedBookForDetail}
-          onClose={() => {
-            setSelectedBookForDetail(null);
-            queryClient.invalidateQueries({ queryKey: ["book-check"] });
-          }}
-          showAddButton={true}
         />
       )}
     </div>

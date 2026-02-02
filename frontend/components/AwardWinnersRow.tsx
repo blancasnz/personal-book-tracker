@@ -4,7 +4,9 @@ import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { searchExternalBooks, addExternalBookToDb } from "@/lib/api";
 import AddToListModal from "./lists/AddToListModal";
-import BookDetailModal from "./BookDetailModal";
+import Link from "next/link";
+import { getBookPageUrl } from "@/lib/bookUtils";
+
 import { Book, BookCreate } from "@/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -103,8 +105,6 @@ export default function AwardWinnersRow({
 }: AwardWinnersRowProps) {
   const router = useRouter();
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [selectedBookForDetail, setSelectedBookForDetail] =
-    useState<Book | null>(null);
   const queryClient = useQueryClient();
 
   const winners =
@@ -178,10 +178,10 @@ export default function AwardWinnersRow({
       <div className="relative">
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {books.map((book, index) => (
-            <div
+            <Link
               key={index}
+              href={getBookPageUrl(book)}
               className="flex-shrink-0 w-32 cursor-pointer group"
-              onClick={() => setSelectedBookForDetail(book)}
             >
               {/* Book Cover */}
               {book.cover_url ? (
@@ -198,6 +198,7 @@ export default function AwardWinnersRow({
                   {/* Quick Add Button */}
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       addBookMutation.mutate(book as BookCreate);
                     }}
@@ -222,7 +223,7 @@ export default function AwardWinnersRow({
               <p className="text-xs text-gray-600 line-clamp-1">
                 {book.author}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -245,16 +246,6 @@ export default function AwardWinnersRow({
           book={selectedBook}
           isOpen={!!selectedBook}
           onClose={() => setSelectedBook(null)}
-        />
-      )}
-
-      {/* Book Detail Modal */}
-      {selectedBookForDetail && (
-        <BookDetailModal
-          book={selectedBookForDetail}
-          isOpen={!!selectedBookForDetail}
-          onClose={() => setSelectedBookForDetail(null)}
-          showAddButton={true}
         />
       )}
     </>

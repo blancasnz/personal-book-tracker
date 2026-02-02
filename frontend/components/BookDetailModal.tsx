@@ -12,6 +12,8 @@ import StarRating from "./ui/StarRating";
 import toast from "react-hot-toast";
 import EditionSelector from "./EditionSelector";
 import ListSelector from "./ListSelector";
+import Link from "next/link";
+import { getBookPageUrl } from "@/lib/bookUtils";
 
 interface BookDetailModalProps {
   book: Book;
@@ -118,6 +120,7 @@ export default function BookDetailModal({
 
             <div className="flex flex-col md:flex-row gap-6">
               {/* Cover Image */}
+              {/* Cover Image */}
               {book.cover_url && (
                 <div className="flex-shrink-0">
                   <img
@@ -125,6 +128,16 @@ export default function BookDetailModal({
                     alt={book.title}
                     className="w-48 h-72 object-contain rounded-book book-cover-shadow mx-auto md:mx-0"
                   />
+
+                  {/* View Full Page Button - Only show if book has ID (in library) */}
+                  {book.id && (
+                    <Link
+                      href={getBookPageUrl(book)}
+                      className="block mt-4 px-4 py-2 bg-primary-50 text-primary-800 hover:bg-primary-100 rounded-lg transition-colors text-sm font-medium border border-primary-200 text-center"
+                    >
+                      View Full Page →
+                    </Link>
+                  )}
                 </div>
               )}
 

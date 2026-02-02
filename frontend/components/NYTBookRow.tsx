@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getNYTBestsellers, addExternalBookToDb } from "@/lib/api";
 import AddToListModal from "./lists/AddToListModal";
-import BookDetailModal from "./BookDetailModal";
+import Link from "next/link";
+import { getBookPageUrl } from "@/lib/bookUtils";
+
 import { Book, BookCreate } from "@/types";
 import toast from "react-hot-toast";
 
@@ -16,8 +18,6 @@ interface NYTBookRowProps {
 export default function NYTBookRow({ listName }: NYTBookRowProps) {
   const router = useRouter();
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [selectedBookForDetail, setSelectedBookForDetail] =
-    useState<Book | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -67,10 +67,10 @@ export default function NYTBookRow({ listName }: NYTBookRowProps) {
       <div className="relative">
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {books.slice(0, 10).map((book: any, index: number) => (
-            <div
+            <Link
               key={index}
+              href={getBookPageUrl(book)}
               className="flex-shrink-0 w-32 cursor-pointer group"
-              onClick={() => setSelectedBookForDetail(book)}
             >
               {/* Book Cover */}
               {book.cover_url ? (
@@ -87,6 +87,7 @@ export default function NYTBookRow({ listName }: NYTBookRowProps) {
                   {/* Quick Add Button */}
                   <button
                     onClick={(e) => {
+                      e.preventDefault(); // ← Add this
                       e.stopPropagation();
                       addBookMutation.mutate(book as BookCreate);
                     }}
@@ -118,7 +119,7 @@ export default function NYTBookRow({ listName }: NYTBookRowProps) {
                   {book.weeks_on_list} weeks on list
                 </p>
               )}
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -137,16 +138,6 @@ export default function NYTBookRow({ listName }: NYTBookRowProps) {
           book={selectedBook}
           isOpen={!!selectedBook}
           onClose={() => setSelectedBook(null)}
-        />
-      )}
-
-      {/* Book Detail Modal */}
-      {selectedBookForDetail && (
-        <BookDetailModal
-          book={selectedBookForDetail}
-          isOpen={!!selectedBookForDetail}
-          onClose={() => setSelectedBookForDetail(null)}
-          showAddButton={true}
         />
       )}
     </>

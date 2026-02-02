@@ -4,23 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import { checkBookExists } from "@/lib/api";
 import { Book } from "@/types";
 import ListSelector from "./ListSelector";
+import Link from "next/link";
+import { getBookPageUrl } from "@/lib/bookUtils";
 
 interface BookCardProps {
   book: any;
-  onClickCard: () => void;
   onAddToList: () => void;
 }
 
-export default function BookCard({
-  book,
-  onClickCard,
-  onAddToList,
-}: BookCardProps) {
+export default function BookCard({ book, onAddToList }: BookCardProps) {
   // Check if book already exists in library
   const { data: bookCheck, refetch } = useQuery({
     queryKey: ["book-check", book.isbn, book.title, book.author],
-    queryFn: () =>
-      checkBookExists(book.isbn ?? undefined, book.title, book.author),
+    queryFn: () => checkBookExists(
+      book.isbn ?? undefined,
+      book.title,
+      book.author
+    ),
   });
 
   const bookExists = bookCheck?.exists || false;
@@ -28,7 +28,7 @@ export default function BookCard({
 
   return (
     <div className="border border-primary-100 rounded-lg p-4 hover:shadow-card-hover transition-all bg-white">
-      <div onClick={onClickCard} className="cursor-pointer">
+      <Link href={getBookPageUrl(book)} className="cursor-pointer block">
         {book.cover_url && (
           <img
             src={book.cover_url}
@@ -63,7 +63,7 @@ export default function BookCard({
             {book.description}
           </p>
         )}
-      </div>
+      </Link>
 
       {/* Show ListSelector if book exists, otherwise show Add to List button */}
       {bookExists && existingLists.length > 0 ? (
@@ -77,6 +77,7 @@ export default function BookCard({
       ) : (
         <button
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onAddToList();
           }}
