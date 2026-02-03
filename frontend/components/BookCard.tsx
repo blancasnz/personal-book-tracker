@@ -15,10 +15,11 @@ export default function BookCard({ book }: BookCardProps) {
   const [showListModal, setShowListModal] = useState(false);
 
   // Check if book already exists in library
+  // Check by title+author so all editions of the same book are recognized
   const { data: bookCheck, refetch } = useQuery({
-    queryKey: ["book-check", book.isbn, book.title, book.author],
+    queryKey: ["book-check", book.title, book.author],
     queryFn: () => checkBookExists(
-      book.isbn ?? undefined,
+      undefined,
       book.title,
       book.author
     ),

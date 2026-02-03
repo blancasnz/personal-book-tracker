@@ -65,6 +65,8 @@ class BookUpdate(BaseModel):
     published_year: Optional[int] = None
     page_count: Optional[int] = None
     genres: Optional[List[str]] = None
+    format: Optional[str] = Field(None, max_length=50)
+    edition: Optional[str] = Field(None, max_length=100)
 
     @field_validator("genres", mode="before")
     @classmethod

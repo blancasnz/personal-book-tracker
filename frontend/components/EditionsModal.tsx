@@ -23,6 +23,8 @@ interface EditionsModalProps {
   isLoading: boolean;
   currentEditionIndex?: number | null;
   onSelectEdition: (edition: Edition) => void;
+  confirmLabel?: string;
+  isUpdating?: boolean;
 }
 
 const formatLabels: Record<string, string> = {
@@ -48,6 +50,8 @@ export default function EditionsModal({
   isLoading,
   currentEditionIndex,
   onSelectEdition,
+  confirmLabel = "Select this edition",
+  isUpdating = false,
 }: EditionsModalProps) {
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
 
@@ -220,10 +224,10 @@ export default function EditionsModal({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={highlightedIndex === null}
+              disabled={highlightedIndex === null || isUpdating}
               className="px-5 py-2 text-sm font-medium text-white rounded-lg transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600"
             >
-              Select this edition
+              {isUpdating ? "Updating..." : confirmLabel}
             </button>
           </div>
         )}

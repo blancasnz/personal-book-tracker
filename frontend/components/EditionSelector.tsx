@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getBookEditions } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getBookEditions, updateBook } from "@/lib/api";
 import { Book } from "@/types";
 import EditionsModal from "./EditionsModal";
+import toast from "react-hot-toast";
 
 interface EditionSelectorProps {
   book: Book;
   onSelectEdition: (edition: Book) => void;
   selectedFormat?: string;
+  existingBookId?: number;
 }
 
 const formatLabels: Record<string, string> = {
@@ -32,9 +34,12 @@ export default function EditionSelector({
   book,
   onSelectEdition,
   selectedFormat,
+  existingBookId,
 }: EditionSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedEditionIndex, setSelectedEditionIndex] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: editionsData, isLoading } = useQuery({
     queryKey: ["editions", book.title, book.author],
@@ -44,7 +49,7 @@ export default function EditionSelector({
 
   const editions = editionsData?.editions || [];
 
-  const handleConfirmEdition = (edition: any) => {
+  const handleConfirmEdition = async (edition: any) => {
     const index = editions.indexOf(edition);
     setSelectedEditionIndex(index !== -1 ? index : null);
 
@@ -54,6 +59,33 @@ export default function EditionSelector({
       description: book.description || edition.description,
       genres: book.genres?.length ? book.genres : edition.genres,
     };
+
+    if (existingBookId) {
+      // Book is already in a list — persist the edition change to the DB
+      setIsUpdating(true);
+      try {
+        await updateBook(existingBookId, {
+          isbn: edition.isbn,
+          cover_url: edition.cover_url,
+          format: edition.format,
+          edition: edition.edition,
+          page_count: edition.page_count,
+          published_year: edition.published_year,
+        });
+        // Invalidate queries so the UI reflects the update everywhere
+        queryClient.invalidateQueries({ queryKey: ["book-check"] });
+        queryClient.invalidateQueries({ queryKey: ["list"] });
+        queryClient.invalidateQueries({ queryKey: ["lists"] });
+        queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+        toast.success("Edition updated!");
+      } catch {
+        toast.error("Failed to update edition");
+        setIsUpdating(false);
+        return;
+      }
+      setIsUpdating(false);
+    }
+
     onSelectEdition(mergedBook);
     setIsOpen(false);
   };
@@ -79,6 +111,8 @@ export default function EditionSelector({
         isLoading={isLoading}
         currentEditionIndex={selectedEditionIndex}
         onSelectEdition={handleConfirmEdition}
+        confirmLabel={existingBookId ? "Update Edition" : "Select this edition"}
+        isUpdating={isUpdating}
       />
     </>
   );

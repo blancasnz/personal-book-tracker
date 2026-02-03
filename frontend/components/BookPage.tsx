@@ -25,20 +25,12 @@ export default function BookPage({
     setCurrentBook(book);
   }, [book]);
 
-  // Check if book already exists in library
+  // Check if book already exists in library — always use original title/author
+  // so all editions of the same book are recognized as already in a list
   const { data: bookCheck, refetch: refetchBookCheck } = useQuery({
-    queryKey: [
-      "book-check",
-      currentBook.isbn,
-      currentBook.title,
-      currentBook.author,
-    ],
+    queryKey: ["book-check", book.title, book.author],
     queryFn: () =>
-      checkBookExists(
-        currentBook.isbn ?? undefined,
-        currentBook.title,
-        currentBook.author
-      ),
+      checkBookExists(undefined, book.title, book.author),
     enabled: showAddButton,
   });
 
@@ -160,6 +152,7 @@ export default function BookPage({
                         setCurrentBook(mergedBook);
                       }}
                       selectedFormat={currentBook.format ?? undefined}
+                      existingBookId={bookExists ? bookCheck.book.id : undefined}
                     />
                   </div>
 

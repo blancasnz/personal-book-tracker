@@ -34,6 +34,9 @@ export interface BookUpdate {
   description?: string;
   published_year?: number;
   page_count?: number;
+  genres?: string[];
+  format?: string;
+  edition?: string;
 }
 
 // Reading status
