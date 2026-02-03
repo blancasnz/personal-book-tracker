@@ -11,7 +11,6 @@ import StatusBadge from "./ui/StatusBadge";
 import StarRating from "./ui/StarRating";
 import toast from "react-hot-toast";
 import EditionSelector from "./EditionSelector";
-import ListSelector from "./ListSelector";
 import Link from "next/link";
 import { getBookPageUrl } from "@/lib/bookUtils";
 
@@ -30,10 +29,9 @@ export default function BookDetailModal({
   onClose,
   showAddButton = false,
 }: BookDetailModalProps) {
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [showListModal, setShowListModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [currentBook, setCurrentBook] = useState<Book>(book);
-  const [showExistingLists, setShowExistingLists] = useState(false);
   const [selectedItemForUpdate, setSelectedItemForUpdate] = useState<any>(null);
 
   // Track status locally so it updates immediately
@@ -70,9 +68,18 @@ export default function BookDetailModal({
 
   // Check if book already exists in library
   const { data: bookCheck, refetch: refetchBookCheck } = useQuery({
-    queryKey: ["book-check", book.isbn, book.title, book.author],
+    queryKey: [
+      "book-check",
+      currentBook.isbn,
+      currentBook.title,
+      currentBook.author,
+    ],
     queryFn: () =>
-      checkBookExists(book.isbn ?? undefined, book.title, book.author),
+      checkBookExists(
+        currentBook.isbn ?? undefined,
+        currentBook.title,
+        currentBook.author
+      ),
     enabled: isOpen && showAddButton,
   });
 
@@ -108,7 +115,7 @@ export default function BookDetailModal({
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-3xl font-bold text-pine-900 pr-8">
-                {book.title}
+                {currentBook.title}
               </h2>
               <button
                 onClick={onClose}
@@ -121,11 +128,11 @@ export default function BookDetailModal({
             <div className="flex flex-col md:flex-row gap-6">
               {/* Cover Image */}
               {/* Cover Image */}
-              {book.cover_url && (
+              {currentBook.cover_url && (
                 <div className="flex-shrink-0">
                   <img
-                    src={book.cover_url}
-                    alt={book.title}
+                    src={currentBook.cover_url}
+                    alt={currentBook.title}
                     className="w-48 h-72 object-contain rounded-book book-cover-shadow mx-auto md:mx-0"
                   />
 
@@ -146,7 +153,7 @@ export default function BookDetailModal({
                 {/* Author */}
                 <div>
                   <h3 className="text-xl font-semibold text-pine-900">
-                    {book.author}
+                    {currentBook.author}
                   </h3>
                 </div>
 
@@ -178,23 +185,23 @@ export default function BookDetailModal({
                 )}
 
                 {/* Genres */}
-                {book.genres && book.genres.length > 0 && (
+                {currentBook.genres && currentBook.genres.length > 0 && (
                   <div>
                     <span className="text-sm font-medium text-pine-600 block mb-2">
                       Genres:
                     </span>
-                    <GenreBadges genres={book.genres} maxVisible={10} />
+                    <GenreBadges genres={currentBook.genres} maxVisible={10} />
                   </div>
                 )}
 
                 {/* Page Count */}
-                {book.page_count && (
+                {currentBook.page_count && (
                   <div>
                     <span className="text-sm font-medium text-pine-600">
                       Pages:
                     </span>
                     <span className="ml-2 text-pine-800">
-                      {book.page_count}
+                      {currentBook.page_count}
                     </span>
                   </div>
                 )}
@@ -212,18 +219,18 @@ export default function BookDetailModal({
                 )}
 
                 {/* Description */}
-                {book.description && (
+                {currentBook.description && (
                   <div>
                     <h4 className="text-sm font-medium text-pine-600 mb-2">
                       Description:
                     </h4>
                     <p className="text-pine-700 leading-relaxed">
-                      {book.description}
+                      {currentBook.description}
                     </p>
                   </div>
                 )}
 
-                {!book.description && (
+                {!currentBook.description && (
                   <div className="text-pine-400 italic">
                     No description available
                   </div>
@@ -256,24 +263,17 @@ export default function BookDetailModal({
                       />
                     </div>
 
-                    {/* Show existing lists with toggle selector */}
+                    {/* Add to List / In List Button */}
                     {bookExists && existingLists.length > 0 ? (
-                      <div className="mt-4">
-                        <span className="text-sm font-medium text-pine-600 block mb-2">
-                          Manage Lists:
-                        </span>
-                        <ListSelector
-                          book={bookCheck.book}
-                          existingLists={existingLists}
-                          onUpdate={refetchBookCheck}
-                        />
-                      </div>
-                    ) : null}
-
-                    {/* Add to List Button */}
-                    {existingLists.length === 0 && (
                       <button
-                        onClick={() => setSelectedBook(currentBook)}
+                        onClick={() => setShowListModal(true)}
+                        className="w-full mt-4 px-4 py-3 bg-primary-50 text-pine-800 rounded-lg hover:bg-primary-100 transition-colors font-medium border border-primary-200"
+                      >
+                        In {existingLists.length} list{existingLists.length !== 1 ? "s" : ""}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowListModal(true)}
                         className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm"
                       >
                         Add to List
@@ -287,17 +287,16 @@ export default function BookDetailModal({
         </div>
       </div>
 
-      {/* Add to List Modal */}
-      {selectedBook && (
-        <AddToListModal
-          book={selectedBook}
-          isOpen={!!selectedBook}
-          onClose={() => {
-            setSelectedBook(null);
-            refetchBookCheck(); // Refresh to show new list
-          }}
-        />
-      )}
+      {/* Add to List / Manage Lists Modal */}
+      <AddToListModal
+        book={bookExists ? bookCheck.book : currentBook}
+        isOpen={showListModal}
+        onClose={() => {
+          setShowListModal(false);
+          refetchBookCheck();
+        }}
+        existingLists={existingLists}
+      />
 
       {/* Update Status Modal */}
       {showStatusModal && (bookListItem || selectedItemForUpdate) && (

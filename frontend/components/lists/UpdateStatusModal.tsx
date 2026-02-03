@@ -106,6 +106,7 @@ export default function UpdateStatusModal({
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+      queryClient.invalidateQueries({ queryKey: ["book-check"] });
       onClose();
       toast.success("Book removed from library");
     },

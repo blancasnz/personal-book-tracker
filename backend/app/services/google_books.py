@@ -114,8 +114,14 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
     if cached is not None:
         return cached
 
+    # Use intitle: qualifier for better results from Google Books API.
+    # Plain text queries can return 0 results while structured queries work.
+    formatted_query = query
+    if not any(prefix in query for prefix in ["intitle:", "inauthor:", "isbn:"]):
+        formatted_query = f"intitle:{query}"
+
     params = {
-        "q": query,
+        "q": formatted_query,
         "maxResults": min(max_results, 40),
         "printType": "books",
         "langRestrict": "en",

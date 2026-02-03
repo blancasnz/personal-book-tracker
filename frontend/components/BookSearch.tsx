@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { searchExternalBooks } from "@/lib/api";
-import { Book } from "@/types";
-import AddToListModal from "./lists/AddToListModal";
 import { BookCardSkeleton } from "./ui/Skeleton";
 import BookCard from "./BookCard";
 import NYTBookRow from "./NYTBookRow";
@@ -15,8 +13,6 @@ export default function BookSearch() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -199,7 +195,6 @@ export default function BookSearch() {
               <BookCard
                 key={index}
                 book={book}
-                onAddToList={() => setSelectedBook(book)}
               />
             ))}
           </div>
@@ -213,16 +208,6 @@ export default function BookSearch() {
         </div>
       )}
 
-      {selectedBook && (
-        <AddToListModal
-          book={selectedBook}
-          isOpen={!!selectedBook}
-          onClose={() => {
-            setSelectedBook(null);
-            queryClient.invalidateQueries({ queryKey: ["book-check"] });
-          }}
-        />
-      )}
     </div>
   );
 }

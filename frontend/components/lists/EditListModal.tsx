@@ -72,6 +72,7 @@ export default function EditListModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["book-check"] });
       toast.success(`${selectedBooks.size} book(s) removed from library`);
       setSelectedBooks(new Set());
       onClose();

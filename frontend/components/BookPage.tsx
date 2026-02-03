@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { checkBookExists } from "@/lib/api";
 import { Book } from "@/types";
 import EditionSelector from "./EditionSelector";
-import ListSelector from "./ListSelector";
+import AddToListModal from "./lists/AddToListModal";
 import GenreBadges from "./ui/GenreBadges";
 import Link from "next/link";
 
@@ -19,7 +19,7 @@ export default function BookPage({
   showAddButton = false,
 }: BookPageProps) {
   const [currentBook, setCurrentBook] = useState<Book>(book);
-  const queryClient = useQueryClient();
+  const [showListModal, setShowListModal] = useState(false);
 
   useEffect(() => {
     setCurrentBook(book);
@@ -27,9 +27,18 @@ export default function BookPage({
 
   // Check if book already exists in library
   const { data: bookCheck, refetch: refetchBookCheck } = useQuery({
-    queryKey: ["book-check", book.isbn, book.title, book.author],
+    queryKey: [
+      "book-check",
+      currentBook.isbn,
+      currentBook.title,
+      currentBook.author,
+    ],
     queryFn: () =>
-      checkBookExists(book.isbn ?? undefined, book.title, book.author),
+      checkBookExists(
+        currentBook.isbn ?? undefined,
+        currentBook.title,
+        currentBook.author
+      ),
     enabled: showAddButton,
   });
 
@@ -58,10 +67,10 @@ export default function BookPage({
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left: Book Cover */}
             <div className="flex-shrink-0">
-              {book.cover_url ? (
+              {currentBook.cover_url ? (
                 <img
-                  src={book.cover_url}
-                  alt={book.title}
+                  src={currentBook.cover_url}
+                  alt={currentBook.title}
                   className="w-64 h-96 object-contain rounded-book book-cover-shadow mx-auto lg:mx-0"
                 />
               ) : (
@@ -76,50 +85,52 @@ export default function BookPage({
               {/* Title & Author */}
               <div>
                 <h1 className="text-4xl font-bold text-pine-900 mb-2">
-                  {book.title}
+                  {currentBook.title}
                 </h1>
-                <p className="text-xl text-pine-700">by {book.author}</p>
+                <p className="text-xl text-pine-700">
+                  by {currentBook.author}
+                </p>
               </div>
 
               {/* Genres */}
-              {book.genres && book.genres.length > 0 && (
+              {currentBook.genres && currentBook.genres.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-pine-600 mb-2">
                     Genres:
                   </h3>
-                  <GenreBadges genres={book.genres} maxVisible={10} />
+                  <GenreBadges genres={currentBook.genres} maxVisible={10} />
                 </div>
               )}
 
               {/* Page Count & Published Year */}
               <div className="flex gap-6 text-sm text-pine-600">
-                {book.page_count && (
+                {currentBook.page_count && (
                   <div>
                     <span className="font-medium">Pages:</span>{" "}
-                    {book.page_count}
+                    {currentBook.page_count}
                   </div>
                 )}
-                {book.published_year && (
+                {currentBook.published_year && (
                   <div>
                     <span className="font-medium">Published:</span>{" "}
-                    {book.published_year}
+                    {currentBook.published_year}
                   </div>
                 )}
               </div>
 
               {/* Description */}
-              {book.description && (
+              {currentBook.description && (
                 <div>
                   <h3 className="text-lg font-semibold text-pine-800 mb-3">
                     Description
                   </h3>
                   <p className="text-pine-700 leading-relaxed">
-                    {book.description}
+                    {currentBook.description}
                   </p>
                 </div>
               )}
 
-              {!book.description && (
+              {!currentBook.description && (
                 <div className="text-pine-400 italic">
                   No description available
                 </div>
@@ -139,7 +150,8 @@ export default function BookPage({
                         const mergedBook = {
                           ...book,
                           ...edition,
-                          description: book.description || edition.description,
+                          description:
+                            book.description || edition.description,
                           genres:
                             book.genres && book.genres.length > 0
                               ? book.genres
@@ -151,24 +163,23 @@ export default function BookPage({
                     />
                   </div>
 
-                  {/* List Management */}
+                  {/* Add to List / In List */}
                   <div>
-                    <h3 className="text-sm font-medium text-pine-600 mb-2">
-                      {bookExists ? "Manage Lists:" : "Add to List:"}
-                    </h3>
                     {bookExists && existingLists.length > 0 ? (
-                      <ListSelector
-                        book={bookCheck.book}
-                        existingLists={existingLists}
-                        onUpdate={refetchBookCheck}
-                      />
+                      <button
+                        onClick={() => setShowListModal(true)}
+                        className="w-full px-4 py-3 bg-primary-50 text-pine-800 rounded-lg hover:bg-primary-100 transition-colors font-medium border border-primary-200"
+                      >
+                        In {existingLists.length} list
+                        {existingLists.length !== 1 ? "s" : ""}
+                      </button>
                     ) : (
-                      <Link
-                        href={`/search?addBook=${book.isbn || book.title}`}
-                        className="block w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm text-center"
+                      <button
+                        onClick={() => setShowListModal(true)}
+                        className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm"
                       >
                         Add to List
-                      </Link>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -176,15 +187,18 @@ export default function BookPage({
             </div>
           </div>
         </div>
-
-        {/* Other Editions Section - Placeholder for future */}
-        <div className="mt-8 bg-white rounded-xl shadow-card p-8 border border-primary-100">
-          <h2 className="text-2xl font-bold text-pine-900 mb-4">
-            Other Editions
-          </h2>
-          <p className="text-pine-600">Coming soon...</p>
-        </div>
       </div>
+
+      {/* Add to List / Manage Lists Modal */}
+      <AddToListModal
+        book={bookExists ? bookCheck.book : currentBook}
+        isOpen={showListModal}
+        onClose={() => {
+          setShowListModal(false);
+          refetchBookCheck();
+        }}
+        existingLists={existingLists}
+      />
     </div>
   );
 }

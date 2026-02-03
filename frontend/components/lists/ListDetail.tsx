@@ -80,6 +80,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
       // Invalidate all queries
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["book-check"] });
       toast.success("Book removed from library");
     } catch (error) {
       console.error("Error removing book:", error);

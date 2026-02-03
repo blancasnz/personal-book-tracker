@@ -1,18 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { checkBookExists } from "@/lib/api";
-import { Book } from "@/types";
-import ListSelector from "./ListSelector";
+import AddToListModal from "./lists/AddToListModal";
 import Link from "next/link";
 import { getBookPageUrl } from "@/lib/bookUtils";
 
 interface BookCardProps {
   book: any;
-  onAddToList: () => void;
 }
 
-export default function BookCard({ book, onAddToList }: BookCardProps) {
+export default function BookCard({ book }: BookCardProps) {
+  const [showListModal, setShowListModal] = useState(false);
+
   // Check if book already exists in library
   const { data: bookCheck, refetch } = useQuery({
     queryKey: ["book-check", book.isbn, book.title, book.author],
@@ -45,10 +46,10 @@ export default function BookCard({ book, onAddToList }: BookCardProps) {
         {/* Format Badge */}
         {book.format && (
           <span className="inline-block px-2 py-1 bg-primary-100 text-primary-800 rounded text-xs font-medium mb-2">
-            {book.format === "hardcover" && "📘 Hardcover"}
-            {book.format === "paperback" && "📖 Paperback"}
-            {book.format === "ebook" && "📱 eBook"}
-            {book.format === "audiobook" && "🎧 Audiobook"}
+            {book.format === "hardcover" && "Hardcover"}
+            {book.format === "paperback" && "Paperback"}
+            {book.format === "ebook" && "eBook"}
+            {book.format === "audiobook" && "Audiobook"}
           </span>
         )}
 
@@ -65,27 +66,40 @@ export default function BookCard({ book, onAddToList }: BookCardProps) {
         )}
       </Link>
 
-      {/* Show ListSelector if book exists, otherwise show Add to List button */}
+      {/* Unified button: "In List" if exists, "Add to List" if not */}
       {bookExists && existingLists.length > 0 ? (
-        <div onClick={(e) => e.stopPropagation()}>
-          <ListSelector
-            book={bookCheck.book}
-            existingLists={existingLists}
-            onUpdate={refetch}
-          />
-        </div>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowListModal(true);
+          }}
+          className="w-full px-4 py-2 bg-primary-50 text-pine-800 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium border border-primary-200"
+        >
+          In {existingLists.length} list{existingLists.length !== 1 ? "s" : ""}
+        </button>
       ) : (
         <button
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onAddToList();
+            setShowListModal(true);
           }}
           className="w-full px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 text-sm font-medium transition-all"
         >
           Add to List
         </button>
       )}
+
+      <AddToListModal
+        book={bookExists ? bookCheck.book : book}
+        isOpen={showListModal}
+        onClose={() => {
+          setShowListModal(false);
+          refetch();
+        }}
+        existingLists={existingLists}
+      />
     </div>
   );
 }
