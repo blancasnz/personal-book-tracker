@@ -61,7 +61,7 @@ export default function EditListModal({
           );
           if (hasBook) {
             try {
-              await removeBookFromList(list.id, bookId);
+              await removeBookFromList(list.id, hasBook.id);
             } catch {
               // Ignore errors
             }

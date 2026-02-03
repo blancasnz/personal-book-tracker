@@ -79,7 +79,15 @@ export default function FavoriteHeart({
         if (favoritesList) {
           try {
             const { removeBookFromList } = await import("@/lib/api");
-            await removeBookFromList(favoritesList.id, bookId);
+            const favListData = bookLists.find(
+              (l) => l && l.id === favoritesList.id
+            );
+            const favItem = favListData?.items?.find(
+              (item: any) => item.book.id === bookId
+            );
+            if (favItem) {
+              await removeBookFromList(favoritesList.id, favItem.id);
+            }
           } catch {
             // Ignore if not in favorites list
           }
@@ -90,6 +98,7 @@ export default function FavoriteHeart({
       // Invalidate all list queries to refresh everywhere
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["book-check"] });
 
       toast.success(
         isFavorite === 1 ? "Removed from favorites" : "Added to favorites!"
