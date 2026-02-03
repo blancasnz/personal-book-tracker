@@ -144,7 +144,7 @@ async def search_google_books(query: str, max_results: int = 20) -> List[dict]:
                     books.append(book)
 
             # Filter out low-quality books
-            books = _filter_low_quality_books(books)
+            # books = _filter_low_quality_books(books)
 
             # Deduplicate, keeping best version of each book
             books = _deduplicate_books(books)

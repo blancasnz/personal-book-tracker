@@ -24,6 +24,7 @@ async def search_external_books(
         raise HTTPException(status_code=400, detail="Search query cannot be empty")
 
     books = await search_google_books(q, max_results)
+    print("book results from backend", books)
     return {"query": q, "results": books, "count": len(books)}
 
 

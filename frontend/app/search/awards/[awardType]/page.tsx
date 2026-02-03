@@ -1,13 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { searchExternalBooks, addExternalBookToDb } from "@/lib/api";
+import { addExternalBookToDb } from "@/lib/api";
 import { Book, BookCreate } from "@/types";
 import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
-import { PULITZER_WINNERS, BOOKER_WINNERS } from "@/components/AwardWinnersRow";
+import { PULITZER_WINNERS, BOOKER_WINNERS } from "@/data/awardWinners";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
@@ -30,25 +30,11 @@ export default function AwardsPage() {
   const winners = awardType === "pulitzer" ? PULITZER_WINNERS : BOOKER_WINNERS;
   const title = AWARD_TITLES[awardType] || "Award Winners";
 
-  // Fetch each book from Google Books
-  const bookQueries = useQueries({
-    queries: winners.map((winner) => ({
-      queryKey: ["award-book", winner.title, winner.author],
-      queryFn: async () => {
-        const response = await searchExternalBooks(
-          `${winner.title} ${winner.author}`,
-          1
-        );
-        const book = response.results?.[0];
-        if (book) {
-          return { ...book, awardYear: winner.year };
-        }
-        return null;
-      },
-      staleTime: 1000 * 60 * 60 * 24,
-      gcTime: 1000 * 60 * 60 * 24 * 7,
-    })),
-  });
+  const books = winners.map((winner, index) => ({
+    ...winner,
+    id: -(index + 1), // Synthetic ID for type compatibility (not persisted)
+    awardYear: winner.year,
+  }));
 
   const addBookMutation = useMutation({
     mutationFn: (book: BookCreate) => addExternalBookToDb(book),
@@ -72,11 +58,6 @@ export default function AwardsPage() {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
-
-  const isLoading = bookQueries.some((q) => q.isLoading);
-  const books = bookQueries
-    .map((q) => q.data)
-    .filter((book): book is Book & { awardYear: number } => book !== null);
 
   // Filter books by search query if provided
   const filteredBooks = searchQuery.trim()
@@ -139,36 +120,22 @@ export default function AwardsPage() {
             {winners[winners.length - 1].year} to {winners[0].year}
           </p>
         </div>
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="w-full h-48 bg-warm-100 rounded-book mb-2" />
-                <div className="h-4 bg-warm-100 rounded w-3/4 mb-1" />
-                <div className="h-3 bg-warm-100 rounded w-1/2" />
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Books Grid */}
-        {!isLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredBooks.map((book, index) => (
-              <BookCard
-                key={index}
-                book={book}
-                onClickBook={(b) => setSelectedBookForDetail(b)}
-                onAddBook={(b) => addBookMutation.mutate(b)}
-                isAdding={addBookMutation.isPending}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {filteredBooks.map((book, index) => (
+            <BookCard
+              key={index}
+              book={book}
+              onClickBook={(b) => setSelectedBookForDetail(b)}
+              onAddBook={(b) => addBookMutation.mutate(b)}
+              isAdding={addBookMutation.isPending}
+            />
+          ))}
+        </div>
 
         {/* No Results */}
-        {!isLoading && filteredBooks.length === 0 && searchQuery && (
+        {filteredBooks.length === 0 && searchQuery && (
           <div className="text-center py-12 text-pine-500">
             No books match "{searchQuery}" in this list.
           </div>
