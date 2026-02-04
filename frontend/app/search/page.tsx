@@ -12,11 +12,14 @@ export default function SearchPage() {
             <div className="w-40"></div>
 
             {/* Title - Center */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+            <Link
+              href="/search"
+              className="absolute left-1/2 transform -translate-x-1/2 text-center hover:opacity-80 transition-opacity"
+            >
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent mb-1">
                 Explore Books
               </h1>
-            </div>
+            </Link>
 
             {/* My Curations button - Right (green) */}
             <Link

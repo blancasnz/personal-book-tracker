@@ -7,19 +7,24 @@ import { Book } from "@/types";
 import EditionSelector from "./EditionSelector";
 import AddToListModal from "./lists/AddToListModal";
 import GenreBadges from "./ui/GenreBadges";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface BookPageProps {
   book: Book;
   showAddButton?: boolean;
+  searchQuery?: string;
 }
 
 export default function BookPage({
   book,
   showAddButton = false,
+  searchQuery,
 }: BookPageProps) {
+  const router = useRouter();
   const [currentBook, setCurrentBook] = useState<Book>(book);
   const [showListModal, setShowListModal] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || "");
 
   useEffect(() => {
     setCurrentBook(book);
@@ -39,17 +44,67 @@ export default function BookPage({
 
   return (
     <div className="min-h-screen bg-pine-50">
-      {/* Header with back button */}
+      {/* Header with search bar */}
       <div className="bg-white border-b border-primary-100 shadow-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
+          {/* Title row - matches search page layout */}
+          <div className="flex items-center justify-between relative mb-4">
+            {/* Back link - Left */}
+            <div className="w-40">
+              {searchQuery && (
+                <Link
+                  href={`/search?q=${encodeURIComponent(searchQuery)}`}
+                  className="text-pine-600 hover:text-pine-800 font-medium text-sm"
+                >
+                  ← Back to results
+                </Link>
+              )}
+            </div>
+
+            {/* Title - Center */}
             <Link
               href="/search"
-              className="text-pine-600 hover:text-pine-800 font-medium"
+              className="absolute left-1/2 transform -translate-x-1/2 text-center hover:opacity-80 transition-opacity"
             >
-              ← Back to Search
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
+                Explore Books
+              </h1>
+            </Link>
+
+            {/* My Curations - Right */}
+            <Link
+              href="/lists"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
+            >
+              My Curations
             </Link>
           </div>
+
+          {/* Search bar row */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (localSearchQuery.trim()) {
+                router.push(`/search?q=${encodeURIComponent(localSearchQuery.trim())}`);
+              }
+            }}
+            className="flex gap-2 max-w-2xl mx-auto"
+          >
+            <input
+              type="text"
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              placeholder="Search for books..."
+              className="flex-1 px-4 py-2 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-pine-900"
+            />
+            <button
+              type="submit"
+              disabled={!localSearchQuery.trim()}
+              className="px-6 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
+            >
+              Search
+            </button>
+          </form>
         </div>
       </div>
 

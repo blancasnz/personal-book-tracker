@@ -6,6 +6,7 @@ import { checkBookExists } from "@/lib/api";
 import AddToListModal from "./lists/AddToListModal";
 import Link from "next/link";
 import { getBookPageUrl } from "@/lib/bookUtils";
+import { useSearchParams } from "next/navigation";
 
 interface BookCardProps {
   book: any;
@@ -13,6 +14,8 @@ interface BookCardProps {
 
 export default function BookCard({ book }: BookCardProps) {
   const [showListModal, setShowListModal] = useState(false);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q") || undefined;
 
   // Check if book already exists in library
   // Check by title+author so all editions of the same book are recognized
@@ -30,7 +33,7 @@ export default function BookCard({ book }: BookCardProps) {
 
   return (
     <div className="border border-primary-100 rounded-lg p-4 hover:shadow-card-hover transition-all bg-white">
-      <Link href={getBookPageUrl(book)} className="cursor-pointer block">
+      <Link href={getBookPageUrl(book, searchQuery)} className="cursor-pointer block">
         {book.cover_url && (
           <img
             src={book.cover_url}

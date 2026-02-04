@@ -7,10 +7,11 @@ import { BookCardSkeleton } from "./ui/Skeleton";
 import BookCard from "./BookCard";
 import NYTBookRow from "./NYTBookRow";
 import AwardWinnersRow from "./AwardWinnersRow";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function BookSearch() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -19,6 +20,9 @@ export default function BookSearch() {
     if (q) {
       setSearchQuery(q);
       setDebouncedQuery(q);
+    } else {
+      setSearchQuery("");
+      setDebouncedQuery("");
     }
   }, [searchParams]);
 
@@ -35,13 +39,17 @@ export default function BookSearch() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setDebouncedQuery(searchQuery.trim());
+      const query = searchQuery.trim();
+      setDebouncedQuery(query);
+      // Update URL so back navigation works
+      router.push(`/search?q=${encodeURIComponent(query)}`, { scroll: false });
     }
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
     setDebouncedQuery("");
+    router.push("/search", { scroll: false });
   };
 
   // Show curated sections when no search is active

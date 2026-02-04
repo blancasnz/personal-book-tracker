@@ -29,5 +29,7 @@ export default function BookPreviewPage({
     format: searchParams.get("format") || undefined,
   };
 
-  return <BookPage book={bookData as any} showAddButton={true} />;
+  const searchQuery = searchParams.get("q") || undefined;
+
+  return <BookPage book={bookData as any} showAddButton={true} searchQuery={searchQuery} />;
 }
