@@ -33,6 +33,7 @@ export default function EditListModal({
         name: name.trim(),
         description: description.trim() || undefined,
       }),
+      
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list", list.id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
