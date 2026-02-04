@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getBookEditions, updateBook } from "@/lib/api";
+import { getBookEditions, updateBook, resetBookProgress } from "@/lib/api";
 import { Book } from "@/types";
 import EditionsModal from "./EditionsModal";
 import toast from "react-hot-toast";
@@ -72,12 +72,14 @@ export default function EditionSelector({
           page_count: edition.page_count,
           published_year: edition.published_year,
         });
+        // Reset reading progress since page count may have changed
+        await resetBookProgress(existingBookId);
         // Invalidate queries so the UI reflects the update everywhere
         queryClient.invalidateQueries({ queryKey: ["book-check"] });
         queryClient.invalidateQueries({ queryKey: ["list"] });
         queryClient.invalidateQueries({ queryKey: ["lists"] });
         queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
-        toast.success("Edition updated!");
+        toast.success("Edition updated! Reading progress has been reset.");
       } catch {
         toast.error("Failed to update edition");
         setIsUpdating(false);

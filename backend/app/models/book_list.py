@@ -54,6 +54,7 @@ class BookListItem(Base):
     )
     rating = Column(Integer, nullable=True)  # 1-5 stars
     is_favorite = Column(Integer, default=0, nullable=False)
+    current_page = Column(Integer, default=0, nullable=False)
 
     # Relationships
     book_list = relationship("BookList", back_populates="items")

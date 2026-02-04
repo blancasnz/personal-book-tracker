@@ -20,6 +20,7 @@ class BookListItemBase(BaseModel):
     status: ReadingStatus = ReadingStatus.TO_READ
     rating: Optional[int] = Field(None, ge=1, le=5)
     is_favorite: int = 0
+    current_page: int = 0
 
 
 class BookListItemCreate(BookListItemBase):
@@ -31,6 +32,7 @@ class BookListItemUpdate(BaseModel):
     status: Optional[ReadingStatus] = None
     rating: Optional[int] = Field(None, ge=1, le=5)
     is_favorite: Optional[int] = None
+    current_page: Optional[int] = Field(None, ge=0)
 
 
 class BookListItem(BookListItemBase):

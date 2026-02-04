@@ -13,6 +13,8 @@ import toast from "react-hot-toast";
 import EditionSelector from "./EditionSelector";
 import Link from "next/link";
 import { getBookPageUrl } from "@/lib/bookUtils";
+import ReadingProgressTracker from "./ui/ReadingProgressTracker";
+import { updateBookInList } from "@/lib/api";
 
 interface BookDetailModalProps {
   book: Book;
@@ -160,6 +162,27 @@ export default function BookDetailModal({
                       onClick={() => setShowStatusModal(true)}
                     />
                   </div>
+                )}
+
+                {/* Reading Progress Tracker */}
+                {bookListItem && currentStatus === "reading" && currentBook.page_count && (
+                  <ReadingProgressTracker
+                    item={bookListItem}
+                    onPageUpdate={async (newPage) => {
+                      try {
+                        await updateBookInList(
+                          bookListItem.book_list_id,
+                          bookListItem.book.id,
+                          { current_page: newPage }
+                        );
+                        queryClient.invalidateQueries({ queryKey: ["list"] });
+                        queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
+                      } catch {
+                        // Silent fail - already debounced
+                      }
+                    }}
+                    onFinished={() => setShowStatusModal(true)}
+                  />
                 )}
 
                 {/* Rating - Only show for finished books */}

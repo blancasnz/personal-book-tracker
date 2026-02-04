@@ -7,6 +7,7 @@ from app.models.book import Book as BookModel
 from app.database import get_db
 from app.schemas.book import Book, BookCreate, BookUpdate
 from app.crud import book as crud_book
+from app.crud import book_list as crud_book_list
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -137,3 +138,15 @@ def delete_book(book_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return None
+
+
+@router.post("/{book_id}/reset-progress")
+def reset_book_progress(book_id: int, db: Session = Depends(get_db)):
+    """Reset reading progress (current_page) for a book across all lists"""
+    # Verify book exists
+    book = crud_book.get_book(db, book_id=book_id)
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    count = crud_book_list.reset_book_progress(db, book_id=book_id)
+    return {"message": "Progress reset", "updated_items": count}

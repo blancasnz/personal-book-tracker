@@ -17,6 +17,7 @@ import RandomBookPicker from "./RandomBookPicker";
 import SearchInListModal from "./SearchInListModal";
 import GenreBadges from "../ui/GenreBadges";
 import EditGenresModal from "../books/EditGenresModal";
+import ReadingProgressTracker from "../ui/ReadingProgressTracker";
 
 interface ListDetailProps {
   listId: number;
@@ -214,6 +215,24 @@ export default function ListDetail({ listId }: ListDetailProps) {
                     }}
                   />
                 </div>
+
+                {/* Reading Progress Tracker */}
+                {item.status === "reading" && item.book.page_count && (
+                  <ReadingProgressTracker
+                    item={item}
+                    onPageUpdate={async (newPage) => {
+                      try {
+                        await updateBookInList(item.book_list_id, item.book.id, {
+                          current_page: newPage,
+                        });
+                        queryClient.invalidateQueries({ queryKey: ["list"] });
+                      } catch {
+                        toast.error("Failed to update progress");
+                      }
+                    }}
+                    onFinished={() => setSelectedItem(item)}
+                  />
+                )}
 
                 <p className="text-pine-600 text-xs mb-2">{item.book.author}</p>
 

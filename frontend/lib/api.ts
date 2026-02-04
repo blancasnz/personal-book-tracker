@@ -162,3 +162,8 @@ export const removeBookFromList = async (listId: number, itemId: number) => {
   const response = await apiClient.delete(`/lists/${listId}/books/${itemId}`);
   return response.data;
 };
+
+export const resetBookProgress = async (bookId: number) => {
+  const response = await apiClient.post(`/books/${bookId}/reset-progress`);
+  return response.data;
+};

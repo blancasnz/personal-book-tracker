@@ -52,6 +52,7 @@ export interface BookListItem {
   status: ReadingStatus;
   rating?: number | null;
   is_favorite: number;
+  current_page: number;
   book: Book;
 }
 
@@ -98,4 +99,5 @@ export interface BookListItemUpdate {
   status?: ReadingStatus;
   rating?: number;
   is_favorite?: number;
+  current_page?: number;
 }

@@ -300,11 +300,12 @@ def move_book_to_status_list(
             or item.book_list.is_default == 0
         ):
             item.status = new_status
-            # Sync rating and notes
+            # Sync rating, notes, and current_page
             if old_item.rating:
                 item.rating = old_item.rating
             if old_item.notes and not item.notes:
                 item.notes = old_item.notes
+            item.current_page = old_item.current_page
 
     # Check if already in target status list
     existing_in_target = (
@@ -321,6 +322,7 @@ def move_book_to_status_list(
         existing_in_target.notes = old_item.notes
         existing_in_target.rating = old_item.rating
         existing_in_target.is_favorite = old_item.is_favorite
+        existing_in_target.current_page = old_item.current_page
         db.commit()
         db.refresh(existing_in_target)
         return existing_in_target
@@ -333,6 +335,7 @@ def move_book_to_status_list(
             notes=old_item.notes,
             rating=old_item.rating,
             is_favorite=old_item.is_favorite,
+            current_page=old_item.current_page,
         )
         db.add(new_item)
         db.commit()
@@ -378,3 +381,14 @@ def get_random_book_from_list(
 
     # Return random item
     return random.choice(items)
+
+
+def reset_book_progress(db: Session, book_id: int) -> int:
+    """Reset current_page to 0 for all instances of a book across all lists"""
+    result = (
+        db.query(BookListItem)
+        .filter(BookListItem.book_id == book_id)
+        .update({BookListItem.current_page: 0})
+    )
+    db.commit()
+    return result
