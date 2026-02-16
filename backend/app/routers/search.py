@@ -5,7 +5,9 @@ from typing import List
 from app.database import get_db
 from app.services.google_books import search_google_books
 from app.schemas.book import Book, BookCreate
+from app.schemas.book_list import PublicListSearchResult
 from app.crud import book as crud_book
+from app.crud import book_list as crud_list
 from app.services.open_library import search_open_library_editions
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -61,6 +63,21 @@ async def add_external_book_to_db(book_data: BookCreate, db: Session = Depends(g
 
     # Create new book
     return crud_book.create_book(db, book=book_data)
+
+
+@router.get("/lists")
+def search_public_lists(
+    q: str = Query(..., min_length=1, description="Search query"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """Search public lists by book title or author"""
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
+
+    results = crud_list.search_public_lists_by_book(db, q.strip(), skip=skip, limit=limit)
+    return {"query": q, "results": results, "count": len(results)}
 
 
 @router.get("/editions")

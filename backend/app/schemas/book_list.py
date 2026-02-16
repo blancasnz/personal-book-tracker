@@ -52,17 +52,19 @@ class BookListBase(BaseModel):
 
 
 class BookListCreate(BookListBase):
-    pass
+    is_public: int = 0
 
 
 class BookListUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
+    is_public: Optional[int] = None
 
 
 class BookList(BookListBase):
     id: int
     is_default: int
+    is_public: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     items: List[BookListItem] = []
@@ -74,9 +76,21 @@ class BookList(BookListBase):
 class BookListSummary(BookListBase):
     id: int
     is_default: int
+    is_public: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     item_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class PublicListSearchResult(BaseModel):
+    list_id: int
+    list_name: str
+    list_description: Optional[str] = None
+    item_count: int
+    matching_book: Book
 
     class Config:
         from_attributes = True

@@ -33,6 +33,13 @@ export const addExternalBookToDb = async (book: BookCreate): Promise<Book> => {
   return response.data;
 };
 
+export const searchPublicLists = async (query: string, limit: number = 50) => {
+  const response = await apiClient.get('/search/lists', {
+    params: { q: query, limit }
+  });
+  return response.data;
+};
+
 export const getBookEditions = async (title: string, author: string) => {
   const response = await apiClient.get('/search/editions', {
     params: { title, author }
@@ -50,6 +57,11 @@ export const searchBooks = async (query: string): Promise<Book[]> => {
   const response = await apiClient.get('/books/search', {
     params: { q: query }
   });
+  return response.data;
+};
+
+export const getPublicLists = async (): Promise<BookList[]> => {
+  const response = await apiClient.get('/lists/public');
   return response.data;
 };
 

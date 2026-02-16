@@ -18,6 +18,16 @@ from app.crud import book_list as crud_list
 router = APIRouter(prefix="/lists", tags=["lists"])
 
 
+@router.get("/public", response_model=List[BookList])
+def get_public_lists(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """Get all public lists with their books"""
+    return crud_list.get_public_lists(db, skip=skip, limit=limit)
+
+
 @router.get("/", response_model=List[BookListSummary])
 def get_lists(
     skip: int = Query(0, ge=0),
@@ -119,6 +129,14 @@ def update_list(
     list_id: int, list_update: BookListUpdate, db: Session = Depends(get_db)
 ):
     """Update a list"""
+    # Guard: default lists cannot be made public
+    if list_update.is_public == 1:
+        existing = crud_list.get_book_list(db, list_id)
+        if existing and existing.is_default == 1:
+            raise HTTPException(
+                status_code=400, detail="Default lists cannot be made public"
+            )
+
     book_list = crud_list.update_book_list(db, list_id=list_id, list_update=list_update)
     if not book_list:
         raise HTTPException(status_code=404, detail="List not found")

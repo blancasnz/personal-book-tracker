@@ -129,10 +129,23 @@ export default function ListDetail({ listId }: ListDetailProps) {
               )
             )}
 
-            <p className="text-sm text-pine-500">
-              Created {new Date(list.created_at).toLocaleDateString()} •{" "}
-              {list.items.length} {list.items.length === 1 ? "book" : "books"}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-pine-500">
+              <span>
+                Created {new Date(list.created_at).toLocaleDateString()} •{" "}
+                {list.items.length} {list.items.length === 1 ? "book" : "books"}
+              </span>
+              {list.is_default === 0 && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    list.is_public === 1
+                      ? "bg-green-100 text-green-700"
+                      : "bg-warm-100 text-pine-600"
+                  }`}
+                >
+                  {list.is_public === 1 ? "Public" : "Private"}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}

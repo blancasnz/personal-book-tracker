@@ -19,6 +19,7 @@ export default function EditListModal({
 }: EditListModalProps) {
   const [name, setName] = useState(list.name);
   const [description, setDescription] = useState(list.description || "");
+  const [isPublic, setIsPublic] = useState(list.is_public === 1);
   const [selectedBooks, setSelectedBooks] = useState<Set<number>>(new Set());
 
   const canEditDetails = list.is_default === 0;
@@ -32,6 +33,7 @@ export default function EditListModal({
       updateList(list.id, {
         name: name.trim(),
         description: description.trim() || undefined,
+        is_public: isPublic ? 1 : 0,
       }),
       
     onSuccess: () => {
@@ -208,6 +210,37 @@ export default function EditListModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Add a description for this list..."
                 />
+              </div>
+
+              {/* Visibility Toggle */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Visibility
+                </label>
+                <div className="inline-flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(false)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      !isPublic
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Private
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(true)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      isPublic
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    Public
+                  </button>
+                </div>
               </div>
 
               <div className="flex gap-3">

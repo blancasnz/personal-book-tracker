@@ -71,6 +71,7 @@ def get_book_lists_summary(db: Session, skip: int = 0, limit: int = 100):
             "name": book_list.name,
             "description": book_list.description,
             "is_default": book_list.is_default,
+            "is_public": book_list.is_public,
             "created_at": book_list.created_at,
             "updated_at": book_list.updated_at,
             "item_count": item_count,
@@ -381,6 +382,63 @@ def get_random_book_from_list(
 
     # Return random item
     return random.choice(items)
+
+
+def get_public_lists(db: Session, skip: int = 0, limit: int = 50) -> List[BookList]:
+    """Get all public lists with their items and books"""
+    return (
+        db.query(BookList)
+        .options(joinedload(BookList.items).joinedload(BookListItem.book))
+        .filter(BookList.is_public == 1)
+        .order_by(BookList.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def search_public_lists_by_book(
+    db: Session, query: str, skip: int = 0, limit: int = 50
+):
+    """Search public lists by book title or author"""
+    search_term = f"%{query}%"
+
+    # Subquery for item counts per list
+    item_count_sq = (
+        db.query(
+            BookListItem.book_list_id,
+            func.count(BookListItem.id).label("item_count"),
+        )
+        .group_by(BookListItem.book_list_id)
+        .subquery()
+    )
+
+    results = (
+        db.query(BookList, Book, item_count_sq.c.item_count)
+        .join(BookListItem, BookList.id == BookListItem.book_list_id)
+        .join(Book, BookListItem.book_id == Book.id)
+        .outerjoin(item_count_sq, BookList.id == item_count_sq.c.book_list_id)
+        .filter(
+            BookList.is_public == 1,
+            Book.title.ilike(search_term) | Book.author.ilike(search_term),
+        )
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    output = []
+    for book_list, book, item_count in results:
+        output.append(
+            {
+                "list_id": book_list.id,
+                "list_name": book_list.name,
+                "list_description": book_list.description,
+                "item_count": item_count or 0,
+                "matching_book": book,
+            }
+        )
+    return output
 
 
 def reset_book_progress(db: Session, book_id: int) -> int:

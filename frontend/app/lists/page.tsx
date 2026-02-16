@@ -176,7 +176,14 @@ export default function ListsPage() {
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="truncate">{list.name}</span>
+                                  <span className="truncate">
+                                    {list.name}
+                                    {list.is_public === 1 && (
+                                      <span className="ml-1.5 text-xs text-primary-600 font-normal" title="Public list">
+                                        Public
+                                      </span>
+                                    )}
+                                  </span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-pine-500">
                                       {list.item_count || 0}

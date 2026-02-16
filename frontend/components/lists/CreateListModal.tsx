@@ -16,6 +16,7 @@ export default function CreateListModal({
 }: CreateListModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function CreateListModal({
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       setName("");
       setDescription("");
+      setIsPublic(false);
       onClose();
     },
     onError: (error) => {
@@ -50,6 +52,7 @@ export default function CreateListModal({
       createMutation.mutate({
         name: name.trim(),
         description: description.trim() || undefined,
+        is_public: isPublic ? 1 : 0,
       });
     }
   };
@@ -99,6 +102,37 @@ export default function CreateListModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={3}
             />
+          </div>
+
+          {/* Visibility Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Visibility
+            </label>
+            <div className="inline-flex bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  !isPublic
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Private
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  isPublic
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Public
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 justify-end">

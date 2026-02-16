@@ -61,6 +61,7 @@ export interface BookList {
   name: string;
   description?: string | null;
   is_default: number;
+  is_public: number;
   created_at: string;
   updated_at?: string | null;
   items: BookListItem[];
@@ -71,6 +72,7 @@ export interface BookListSummary {
   name: string;
   description?: string | null;
   is_default: number;
+  is_public: number;
   created_at: string;
   updated_at?: string | null;
   item_count: number;
@@ -79,11 +81,21 @@ export interface BookListSummary {
 export interface BookListCreate {
   name: string;
   description?: string;
+  is_public?: number;
 }
 
 export interface BookListUpdate {
   name?: string;
   description?: string;
+  is_public?: number;
+}
+
+export interface PublicListSearchResult {
+  list_id: number;
+  list_name: string;
+  list_description?: string | null;
+  item_count: number;
+  matching_book: Book;
 }
 
 export interface BookListItemCreate {

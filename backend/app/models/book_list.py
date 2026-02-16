@@ -28,6 +28,7 @@ class BookList(Base):
     name = Column(String(100), nullable=False, index=True)
     description = Column(Text, nullable=True)
     is_default = Column(Integer, default=0)  # 0=user created, 1=default list
+    is_public = Column(Integer, default=0)  # 0=private, 1=public
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
