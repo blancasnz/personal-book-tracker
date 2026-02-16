@@ -51,7 +51,7 @@ export default function BookCard({
         {/* Badge - Rank or Award Year */}
         {(book.rank || book.awardYear) && (
           <div className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-0.5 rounded mb-1 font-medium">
-            {book.rank ? `#${book.rank}` : `🏆 ${book.awardYear}`}
+            {book.rank ? `#${book.rank}` : book.awardYear}
           </div>
         )}
 

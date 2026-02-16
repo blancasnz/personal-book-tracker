@@ -408,13 +408,20 @@ def transform_google_book(item: dict) -> Optional[dict]:
     """Transform Google Books API response to our format"""
     try:
         volume_info = item.get("volumeInfo", {})
+        book_id = item.get("id")
 
-        # Get cover image
-        image_links = volume_info.get("imageLinks", {})
-        cover_url = image_links.get("thumbnail") or image_links.get("smallThumbnail")
-
-        if cover_url:
-            cover_url = cover_url.replace("http://", "https://")
+        # Get cover image - construct URL from book ID for reliability
+        # The search API returns URLs without the imgtk token which often fail (HTTP 204)
+        # Using the publisher content format with fife parameter works reliably
+        cover_url = None
+        if book_id:
+            cover_url = f"https://books.google.com/books/publisher/content/images/frontcover/{book_id}?fife=w400-h600"
+        else:
+            # Fallback to imageLinks if no book ID
+            image_links = volume_info.get("imageLinks", {})
+            cover_url = image_links.get("thumbnail") or image_links.get("smallThumbnail")
+            if cover_url:
+                cover_url = cover_url.replace("http://", "https://")
 
         # Get ISBN (prefer ISBN-13)
         isbn = None

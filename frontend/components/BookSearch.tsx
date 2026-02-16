@@ -6,7 +6,10 @@ import { searchExternalBooks } from "@/lib/api";
 import { BookCardSkeleton } from "./ui/Skeleton";
 import BookCard from "./BookCard";
 import NYTBookRow from "./NYTBookRow";
-import AwardWinnersRow from "./AwardWinnersRow";
+import CuratedBookRow from "./CuratedBookRow";
+import ExploreTabs, { TABS } from "./ui/ExploreTabs";
+import { TAB_CONFIG } from "@/data/exploreTabConfig";
+import { CURATED_LISTS } from "@/data/lists";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function BookSearch() {
@@ -14,15 +17,23 @@ export default function BookSearch() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("awards");
 
   useEffect(() => {
     const q = searchParams.get("q");
+    const tab = searchParams.get("tab");
+
     if (q) {
       setSearchQuery(q);
       setDebouncedQuery(q);
     } else {
       setSearchQuery("");
       setDebouncedQuery("");
+    }
+
+    // Restore tab from URL if valid
+    if (tab && TABS.some(t => t.id === tab)) {
+      setActiveTab(tab);
     }
   }, [searchParams]);
 
@@ -49,11 +60,21 @@ export default function BookSearch() {
   const handleClearSearch = () => {
     setSearchQuery("");
     setDebouncedQuery("");
-    router.push("/search", { scroll: false });
+    // Preserve tab when clearing search
+    router.push(`/search?tab=${activeTab}`, { scroll: false });
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Update URL with tab parameter
+    router.push(`/search?tab=${tab}`, { scroll: false });
   };
 
   // Show curated sections when no search is active
   const showCurated = !debouncedQuery;
+
+  // Get current tab's list configurations
+  const currentTabLists = TAB_CONFIG[activeTab] || [];
 
   return (
     <div className="space-y-6">
@@ -86,83 +107,102 @@ export default function BookSearch() {
 
       {/* Curated Sections - Show when no search */}
       {showCurated && (
-        <div className="space-y-8">
-          <div className="mb-6"></div>
-          {/* Pulitzer Prize Winners */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>🏆</span> Pulitzer Prize Winners
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                Fiction
-              </span>
-            </div>
-            <AwardWinnersRow awardType="pulitzer" maxBooks={10} />
+        <div className="space-y-6">
+          {/* Tab Navigation */}
+          <ExploreTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+          {/* Tab Content */}
+          <div className="space-y-8">
+            {currentTabLists.map((listConfig) => {
+              const books = CURATED_LISTS[listConfig.listType] || [];
+
+              return (
+                <div
+                  key={listConfig.listType}
+                  className="bg-white rounded-xl shadow-card p-6 border border-primary-100"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                      <span>{listConfig.icon || "📚"}</span> {listConfig.title}
+                    </h3>
+                    {listConfig.badge && (
+                      <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                        {listConfig.badge}
+                      </span>
+                    )}
+                  </div>
+                  <CuratedBookRow
+                    listType={listConfig.listType}
+                    title={listConfig.title}
+                    badgeLabel={listConfig.badge}
+                    showYear={listConfig.showYear}
+                    books={books}
+                    totalCount={books.length}
+                    maxBooks={10}
+                  />
+                </div>
+              );
+            })}
           </div>
 
-          {/* Booker Prize Winners */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>🏆</span> Booker Prize Winners
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                International
-              </span>
-            </div>
-            <AwardWinnersRow awardType="booker" maxBooks={10} />
-          </div>
-          {/* Hardcover Fiction */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>📕</span> Hardcover Fiction
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                NYT
-              </span>
-            </div>
-            <NYTBookRow listName="hardcover-fiction" />
-          </div>
+          {/* NYT Bestsellers Section - Always show at bottom */}
+          <div className="mt-8 pt-6 border-t border-warm-200">
+            <h2 className="text-2xl font-bold text-pine-800 mb-6 flex items-center gap-2">
+              <span>📰</span> NYT Bestsellers
+            </h2>
+            <div className="space-y-8">
+              {/* Hardcover Fiction */}
+              <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                    <span>📕</span> Hardcover Fiction
+                  </h3>
+                  <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                    NYT
+                  </span>
+                </div>
+                <NYTBookRow listName="hardcover-fiction" />
+              </div>
 
-          {/* Paperback Fiction */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>📖</span> Paperback Fiction
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                NYT
-              </span>
-            </div>
-            <NYTBookRow listName="trade-fiction-paperback" />
-          </div>
+              {/* Paperback Fiction */}
+              <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                    <span>📖</span> Paperback Fiction
+                  </h3>
+                  <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                    NYT
+                  </span>
+                </div>
+                <NYTBookRow listName="trade-fiction-paperback" />
+              </div>
 
-          {/* Hardcover Nonfiction */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>📗</span> Hardcover Nonfiction
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                NYT
-              </span>
-            </div>
-            <NYTBookRow listName="hardcover-nonfiction" />
-          </div>
+              {/* Hardcover Nonfiction */}
+              <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                    <span>📗</span> Hardcover Nonfiction
+                  </h3>
+                  <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                    NYT
+                  </span>
+                </div>
+                <NYTBookRow listName="hardcover-nonfiction" />
+              </div>
 
-          {/* Paperback Nonfiction */}
-          <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                <span>📘</span> Paperback Nonfiction
-              </h3>
-              <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                NYT
-              </span>
+              {/* Paperback Nonfiction */}
+              <div className="bg-white rounded-xl shadow-card p-6 border border-primary-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                    <span>📘</span> Paperback Nonfiction
+                  </h3>
+                  <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                    NYT
+                  </span>
+                </div>
+                <NYTBookRow listName="paperback-nonfiction" />
+              </div>
             </div>
-            <NYTBookRow listName="paperback-nonfiction" />
           </div>
         </div>
       )}

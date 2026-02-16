@@ -2,38 +2,52 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { addExternalBookToDb } from "@/lib/api";
 import { Book, BookCreate } from "@/types";
 import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
-import { PULITZER_WINNERS, BOOKER_WINNERS } from "@/data/awardWinners";
+import { CURATED_LISTS } from "@/data/lists";
+import { TAB_CONFIG } from "@/data/exploreTabConfig";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
-const AWARD_TITLES: Record<string, string> = {
-  pulitzer: "Pulitzer Prize Winners",
-  booker: "Booker Prize Winners",
-};
+const BOOKS_PER_PAGE = 30;
 
-export default function AwardsPage() {
+// Build a map of list types to their titles and metadata
+const LIST_METADATA: Record<
+  string,
+  { title: string; badge?: string; showYear?: boolean }
+> = {};
+Object.values(TAB_CONFIG).forEach((lists) => {
+  lists.forEach((list) => {
+    LIST_METADATA[list.listType] = {
+      title: list.title,
+      badge: list.badge,
+      showYear: list.showYear,
+    };
+  });
+});
+
+export default function ListsPage() {
   const params = useParams();
   const router = useRouter();
-  const awardType = params.awardType as string;
+  const listType = params.listType as string;
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookForDetail, setSelectedBookForDetail] =
     useState<Book | null>(null);
+  const [visibleCount, setVisibleCount] = useState(BOOKS_PER_PAGE);
 
-  const winners = awardType === "pulitzer" ? PULITZER_WINNERS : BOOKER_WINNERS;
-  const title = AWARD_TITLES[awardType] || "Award Winners";
+  const listData = CURATED_LISTS[listType] || [];
+  const metadata = LIST_METADATA[listType] || { title: "Book List" };
 
-  const books = winners.map((winner, index) => ({
-    ...winner,
+  const books = listData.map((book, index) => ({
+    ...book,
     id: -(index + 1), // Synthetic ID for type compatibility (not persisted)
-    awardYear: winner.year,
+    awardYear: book.year,
   }));
 
   const addBookMutation = useMutation({
@@ -68,6 +82,36 @@ export default function AwardsPage() {
       )
     : books;
 
+  // Paginate: show only visibleCount books
+  const visibleBooks = useMemo(() => {
+    return filteredBooks.slice(0, visibleCount);
+  }, [filteredBooks, visibleCount]);
+
+  const hasMoreBooks = visibleCount < filteredBooks.length;
+  const remainingBooks = filteredBooks.length - visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + BOOKS_PER_PAGE);
+  };
+
+  // Reset visible count when search changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setVisibleCount(BOOKS_PER_PAGE);
+  };
+
+  // Determine year range for award lists
+  const hasYears = listData.some((book) => book.year);
+  const years = listData
+    .filter((b) => b.year)
+    .map((b) => b.year as number)
+    .sort((a, b) => a - b);
+  const yearRange =
+    years.length > 0 ? `${years[0]} to ${years[years.length - 1]}` : null;
+
+  // Determine if this is a ranked list
+  const isRankedList = listData.some((book) => book.rank);
+
   return (
     <div className="min-h-screen gradient-soft">
       {/* Header Banner */}
@@ -85,8 +129,13 @@ export default function AwardsPage() {
             {/* Title - Center */}
             <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent mb-1">
-                {title}
+                {metadata.title}
               </h1>
+              {metadata.badge && (
+                <span className="text-sm text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                  {metadata.badge}
+                </span>
+              )}
             </div>
 
             {/* Empty spacer for balance */}
@@ -102,28 +151,38 @@ export default function AwardsPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for books..."
+              onChange={handleSearchChange}
+              placeholder="Search within this list..."
               className="flex-1 px-4 py-2 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-pine-900"
             />
-            <button
-              type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white rounded-lg hover:from-primary-700 hover:to-secondary-600 transition-all font-medium shadow-sm"
-            >
-              Search
-            </button>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="px-4 py-2 bg-warm-200 text-pine-800 hover:bg-warm-300 rounded-lg transition-colors font-medium"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </form>
         <div className="mb-6">
           <p className="text-pine-600">
-            {winners.length} award-winning books from{" "}
-            {winners[winners.length - 1].year} to {winners[0].year}
+            {searchQuery ? (
+              <>Showing {visibleBooks.length} of {filteredBooks.length} results</>
+            ) : (
+              <>
+                Showing {visibleBooks.length} of {books.length} books
+                {yearRange && metadata.showYear && <span> from {yearRange}</span>}
+                {isRankedList && <span> (ranked list)</span>}
+              </>
+            )}
           </p>
         </div>
 
         {/* Books Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {filteredBooks.map((book, index) => (
+          {visibleBooks.map((book, index) => (
             <BookCard
               key={index}
               book={book}
@@ -134,10 +193,29 @@ export default function AwardsPage() {
           ))}
         </div>
 
+        {/* Load More Button */}
+        {hasMoreBooks && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={handleLoadMore}
+              className="px-6 py-3 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors font-medium shadow-sm"
+            >
+              Load More ({remainingBooks} remaining)
+            </button>
+          </div>
+        )}
+
         {/* No Results */}
         {filteredBooks.length === 0 && searchQuery && (
           <div className="text-center py-12 text-pine-500">
             No books match "{searchQuery}" in this list.
+          </div>
+        )}
+
+        {/* Empty List */}
+        {books.length === 0 && !searchQuery && (
+          <div className="text-center py-12 text-pine-500">
+            No books found in this list.
           </div>
         )}
       </div>
