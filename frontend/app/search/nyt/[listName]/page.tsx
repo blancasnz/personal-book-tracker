@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -78,7 +79,7 @@ export default function NYTListPage() {
           <div className="flex items-center justify-between relative">
             {/* Back to Discover - Left */}
             <button
-              onClick={() => router.push("/search")}
+              onClick={() => router.back()}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               ← Back to Discover
@@ -91,8 +92,13 @@ export default function NYTListPage() {
               </h1>
             </div>
 
-            {/* Empty spacer for balance */}
-            <div className="w-32"></div>
+            {/* My Curations - Right (nav) */}
+            <Link
+              href="/lists"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
+            >
+              My Curations
+            </Link>
           </div>
         </div>
       </div>

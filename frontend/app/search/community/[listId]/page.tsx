@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
@@ -117,27 +118,40 @@ export default function CommunityListDetailPage() {
               )}
             </div>
 
-            {/* Add to My Curations */}
-            <button
-              onClick={() =>
-                copyList({
-                  listName: list.name,
-                  listDescription: list.description || undefined,
-                  communityItems: list.items,
-                })
-              }
-              disabled={isCopying}
-              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 disabled:opacity-60 rounded-lg transition-all text-sm font-medium shadow-sm"
+            {/* My Curations - Right (nav) */}
+            <Link
+              href="/lists"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
             >
-              {isCopying && progress
-                ? `Copying... (${progress.current}/${progress.total})`
-                : "Add to My Curations"}
-            </button>
+              My Curations
+            </Link>
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Copy to My Curations action bar */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-pine-600">
+            {books.length} books
+          </p>
+          <button
+            onClick={() =>
+              copyList({
+                listName: list.name,
+                listDescription: list.description || undefined,
+                communityItems: list.items,
+              })
+            }
+            disabled={isCopying}
+            className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 disabled:opacity-60 rounded-lg transition-colors text-sm font-medium"
+          >
+            {isCopying && progress
+              ? `Copying... (${progress.current}/${progress.total})`
+              : "+ Copy to My Curations"}
+          </button>
+        </div>
+
         {/* Search Bar */}
         <form onSubmit={(e) => e.preventDefault()} className="mb-8">
           <div className="flex gap-2">

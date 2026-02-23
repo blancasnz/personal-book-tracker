@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
@@ -141,26 +142,39 @@ export default function ReeseBookClubPage() {
               </span>
             </div>
 
-            {/* Add to My Curations */}
-            <button
-              onClick={() =>
-                copyList({
-                  listName: "Reese's Book Club",
-                  curatedBooks: allBooks,
-                })
-              }
-              disabled={isCopying}
-              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 disabled:opacity-60 rounded-lg transition-all text-sm font-medium shadow-sm"
+            {/* My Curations - Right (nav) */}
+            <Link
+              href="/lists"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
             >
-              {isCopying && progress
-                ? `Copying... (${progress.current}/${progress.total})`
-                : "Add to My Curations"}
-            </button>
+              My Curations
+            </Link>
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Copy to My Curations action bar */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-pine-600">
+            {totalBooks} books &middot; since 2017
+          </p>
+          <button
+            onClick={() =>
+              copyList({
+                listName: "Reese's Book Club",
+                curatedBooks: allBooks,
+              })
+            }
+            disabled={isCopying}
+            className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 disabled:opacity-60 rounded-lg transition-colors text-sm font-medium"
+          >
+            {isCopying && progress
+              ? `Copying... (${progress.current}/${progress.total})`
+              : "+ Copy to My Curations"}
+          </button>
+        </div>
+
         {/* Year Tabs */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex bg-white rounded-lg p-1 shadow-sm border border-primary-100">
