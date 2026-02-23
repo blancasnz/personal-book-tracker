@@ -25,7 +25,7 @@ export const NPR_THRILLERS: CuratedBook[] = [
     isbn: "9780307455352",
     description: "Forty years ago, Harriet Vanger disappeared off the secluded island owned and inhabited by the powerful Vanger family. There was no corpse, no witnesses, no evidence. Her uncle is convinced that she was murdered by someone in her own family, the deeply dysfunctional Vanger clan. Journalist Mikael Blomkvist is hired to investigate.",
     page_count: 642,
-    genres: ["Blomkvist, Mikael"],
+    genres: ["Thriller"],
     published_year: 2008,
   },
   {

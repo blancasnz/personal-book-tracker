@@ -148,7 +148,7 @@ export const BRAM_STOKER_WINNERS: CuratedBook[] = [
     isbn: "9781613470640",
     description: "Imp, a struggling schizophrenic, fights to determine whether or not the strange mythological creatures she meets are due to her condition or are from something else entirely.",
     page_count: 275,
-    genres: ["Fantasy fiction, American"],
+    genres: ["Fantasy"],
     published_year: 2014,
   },
   {
@@ -335,7 +335,7 @@ export const BRAM_STOKER_WINNERS: CuratedBook[] = [
     isbn: "9780752834221",
     description: "The Green Mile: those who walk it do not return, because at the end of that walk is the room in which sits Cold Mountain penitentiary's electric chair. In 1932 the newest resident on death row is John Coffey, a giant black man convicted of the brutal murder of two little girls. But nothing is as it seems with John Coffey, and around him unfolds a bizarre and horrifying story. Evil murderer or holy innocent - whichever he is - Coffey has strange powers which may yet offer salvation to others, even if they can do nothing to save him. THE AUTHOR",
     page_count: 453,
-    genres: ["Coffey, John (Fictitious character)"],
+    genres: ["Horror"],
     published_year: 2000,
   },
   {

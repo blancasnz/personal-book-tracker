@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Query
-from typing import Optional
 from app.services.nyt_books import get_bestsellers, get_bestseller_lists
 
 router = APIRouter(prefix="/nyt", tags=["nyt-books"])

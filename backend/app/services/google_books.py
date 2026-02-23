@@ -93,27 +93,6 @@ def _deduplicate_books(books: List[dict], query: str = "") -> List[dict]:
     ]
 
 
-def _filter_low_quality_books(books: List[dict]) -> List[dict]:
-    """Filter out books with insufficient information"""
-    filtered = []
-
-    for book in books:
-        # Must have at least: title, author, and cover
-        if not book.get("title"):
-            continue
-        if not book.get("author") or book.get("author") == "Unknown Author":
-            continue
-        if not book.get("cover_url"):
-            continue
-
-        # Calculate quality score - minimum threshold of 5
-        quality_score = _calculate_book_quality_score(book)
-        if quality_score >= 5:
-            filtered.append(book)
-
-    return filtered
-
-
 async def _fetch_google_books(client: httpx.AsyncClient, query: str, max_results: int, api_key: Optional[str] = None) -> List[dict]:
     """Fetch books from Google Books API for a given query string."""
     params = {
@@ -454,15 +433,3 @@ def transform_google_book(item: dict) -> Optional[dict]:
         return None
 
 
-def parse_publish_year(date_string: Optional[str]) -> Optional[int]:
-    """
-    Extract year from various date formats
-    """
-    if not date_string:
-        return None
-
-    try:
-        year = int(date_string[:4])
-        return year if 1000 <= year <= 9999 else None
-    except (ValueError, IndexError):
-        return None

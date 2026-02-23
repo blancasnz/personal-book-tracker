@@ -103,7 +103,7 @@ export function useCopyListToCurations() {
                 const failedBook = batch[idx];
                 console.error(
                   `Failed to copy "${failedBook.title}" by ${failedBook.author}:`,
-                  r.reason?.response?.data || r.reason?.message || r.reason
+                  JSON.stringify(r.reason?.response?.data ?? r.reason?.message ?? r.reason)
                 );
               }
             });

@@ -1,11 +1,9 @@
 from fastapi import APIRouter, Query, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.database import get_db
 from app.services.google_books import search_google_books
 from app.schemas.book import Book, BookCreate
-from app.schemas.book_list import PublicListSearchResult
 from app.crud import book as crud_book
 from app.crud import book_list as crud_list
 from app.services.open_library import search_open_library_editions

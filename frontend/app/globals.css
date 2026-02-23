@@ -25,17 +25,6 @@
   --color-secondary-800: #2f4437;
   --color-secondary-900: #233429;
 
-  --color-accent-50: #f0f4f8;
-  --color-accent-100: #dde7f0;
-  --color-accent-200: #bdd4e5;
-  --color-accent-300: #8fb5d1;
-  --color-accent-400: #6396ba;  /* Soft blue-gray */
-  --color-accent-500: #4a7a9e;
-  --color-accent-600: #3d6485;
-  --color-accent-700: #33526d;
-  --color-accent-800: #284157;
-  --color-accent-900: #1d3243;
-
   --color-warm-50: #fafaf9;
   --color-warm-100: #f5f5f4;
   --color-warm-200: #e9ebe8;
@@ -65,8 +54,6 @@
   /* Custom shadows */
   --shadow-card: 0 2px 16px rgb(0 0 0 / 0.06);
   --shadow-card-hover: 0 8px 24px rgb(90 143 90 / 0.12);
-  --shadow-book: 0 4px 12px rgb(0 0 0 / 0.15), inset 0 -2px 4px rgb(0 0 0 / 0.1);
-
   /* Border radius */
   --radius-book: 8px;
 }
@@ -81,20 +68,8 @@
 
 @layer utilities {
   /* Gradient backgrounds */
-  .gradient-primary {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-400) 100%);
-  }
-
-  .gradient-forest {
-    background: linear-gradient(135deg, var(--color-secondary-400) 0%, var(--color-primary-600) 100%);
-  }
-
   .gradient-soft {
     background: linear-gradient(to bottom, var(--color-warm-50) 0%, var(--color-pine-50) 100%);
-  }
-
-  .gradient-sage {
-    background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-secondary-100) 100%);
   }
 
   /* Scrollbar utilities */

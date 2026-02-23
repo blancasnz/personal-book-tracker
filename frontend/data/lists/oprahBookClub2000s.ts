@@ -145,7 +145,7 @@ export const OPRAH_BOOK_CLUB_2000S: CuratedBook[] = [
     isbn: "9781784870034",
     description: "'There was another yellow butterfly, like one of the sunflecks had come loose' WITH AN INTRODUCTION BY RICHARD HUGHES Depicting the gradual disintegration of the Compson family through four fractured narratives, The Sound and the Fury explores intense, passionate family relationships where there is no love, only self-centredness. At its heart this is a novel about lovelessness - 'only an idiot has no grief; only a fool would forget it. What else is there in this world sharp enough to stick to your guts?'",
     page_count: 288,
-    genres: ["Domestic fiction, American"],
+    genres: ["Fiction"],
     published_year: 2015,
   },
   {

@@ -34,9 +34,3 @@ export const TAB_CONFIG: Record<string, ListConfig[]> = {
   ],
 };
 
-export const TAB_LABELS: Record<string, string> = {
-  awards: "Major Literary Awards",
-  "best-of": "Best Of All Time",
-  "book-clubs": "Book Clubs & Picks",
-  genre: "Genre Awards",
-};

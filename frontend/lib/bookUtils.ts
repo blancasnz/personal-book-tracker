@@ -1,5 +1,3 @@
-import { Book } from "@/types";
-
 export function getBookPageUrl(book: any, searchQuery?: string): string {
   const params = new URLSearchParams();
 

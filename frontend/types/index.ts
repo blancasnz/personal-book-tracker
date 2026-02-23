@@ -26,19 +26,6 @@ export interface BookCreate {
   edition?: string | null;
 }
 
-export interface BookUpdate {
-  title?: string;
-  author?: string;
-  isbn?: string;
-  cover_url?: string;
-  description?: string;
-  published_year?: number;
-  page_count?: number;
-  genres?: string[];
-  format?: string;
-  edition?: string;
-}
-
 // Reading status
 export type ReadingStatus = 'to_read' | 'reading' | 'finished';
 

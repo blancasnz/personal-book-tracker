@@ -13,8 +13,6 @@ export const TABS = [
   { id: "community", label: "Community Curations" },
 ] as const;
 
-export type TabId = (typeof TABS)[number]["id"];
-
 export default function ExploreTabs({
   activeTab,
   onTabChange,

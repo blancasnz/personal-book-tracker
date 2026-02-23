@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import BookSearch from "@/components/BookSearch";
 import Link from "next/link";
-import { BookCardSkeleton } from "@/components/ui/Skeleton";
 
 function SearchLoading() {
   return (

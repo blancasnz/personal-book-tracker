@@ -1,10 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { getPublicLists, addExternalBookToDb } from "@/lib/api";
-import { Book, BookCreate, BookList } from "@/types";
+import { getPublicLists } from "@/lib/api";
+import { Book, BookList } from "@/types";
 import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
 import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
@@ -15,7 +15,6 @@ const BOOKS_PER_PAGE = 30;
 export default function CommunityListDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const listId = Number(params.listId);
 
   const [searchQuery, setSearchQuery] = useState("");

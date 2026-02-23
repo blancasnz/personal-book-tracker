@@ -585,7 +585,7 @@ export const WORLD_FANTASY_WINNERS: CuratedBook[] = [
     isbn: "9781857989779",
     description: "Recently voted the greatest fantasy of all time, after The Lord of the Rings and The Hobbit, Gene Wolfe's The Book of the New Sun is an extraordinary epic, set a million years in the future, on an Earth transformed in mysterious and wondrous ways, in a time when our present culture is no longer even a memory. Severian, the central character, is a torturer, exiled from his guild after falling in love with one of his victims, and journeying to the distant city of Thrax, armed with his ancient executioner's sword, Terminus Est. This edition contains the first two volumes of this four volume novel, The Shadow of the Torturer and The Claw of the Conciliator",
     page_count: 608,
-    genres: ["Fantasy fiction, American"],
+    genres: ["Fantasy"],
     published_year: 2000,
   },
   {

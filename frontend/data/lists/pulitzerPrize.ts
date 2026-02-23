@@ -720,7 +720,7 @@ export const PULITZER_WINNERS: CuratedBook[] = [
     isbn: null,
     description: null,
     page_count: 456,
-    genres: ["World War, 1914-1918"],
+    genres: ["Historical Fiction"],
     published_year: 1954,
   },
   {

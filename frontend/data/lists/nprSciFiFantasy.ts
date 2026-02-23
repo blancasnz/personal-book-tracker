@@ -149,7 +149,7 @@ export const NPR_SCIFI_FANTASY: CuratedBook[] = [
     isbn: "9780812538366",
     description: "The Eye of the World/The Great Hunt/The Dragon Rebornnclude \"The Dragon Reborn, The Great Hunt\" and \"The Eye of the World\"",
     page_count: 716,
-    genres: ["Fantasy fiction, American"],
+    genres: ["Fantasy"],
     published_year: 1993,
   },
   {

@@ -19,12 +19,22 @@ class BookBase(BaseModel):
     @field_validator("genres", mode="before")
     @classmethod
     def parse_genres(cls, v):
-        """Parse genres from comma-separated string to list"""
+        """Parse genres from comma-separated string or list, sanitizing each entry"""
         if isinstance(v, str) and v:
-            return [g.strip() for g in v.split(",") if g.strip()]
-        if v is None:
+            items = [g.strip() for g in v.split(",") if g.strip()]
+        elif v is None:
             return []
-        return v
+        else:
+            # Flatten any items that contain commas (e.g. "Fiction, American" -> "Fiction", "American")
+            items = []
+            for g in v:
+                if isinstance(g, str) and "," in g:
+                    items.extend(part.strip() for part in g.split(",") if part.strip())
+                elif isinstance(g, str) and g.strip():
+                    items.append(g.strip())
+        # Strip characters not allowed by the validator (keep alphanumeric, spaces, hyphens, apostrophes, ampersands)
+        cleaned = [re.sub(r"[^a-zA-Z0-9\s\-'&]", "", g).strip() for g in items]
+        return [g for g in cleaned if g]
 
     @field_validator("genres")
     @classmethod
@@ -35,17 +45,12 @@ class BookBase(BaseModel):
 
         # Max 10 genres
         if len(v) > 10:
-            raise ValueError("Maximum 10 genres allowed")
+            v = v[:10]
 
         # Validate each genre
         for genre in v:
-            # Max 50 characters
             if len(genre) > 50:
                 raise ValueError(f"Genre '{genre}' is too long (max 50 characters)")
-
-            # Only alphanumeric, spaces, hyphens, apostrophes, ampersands
-            if not re.match(r"^[a-zA-Z0-9\s\-'&]+$", genre):
-                raise ValueError(f"Genre '{genre}' contains invalid characters")
 
         return v
 
@@ -71,12 +76,20 @@ class BookUpdate(BaseModel):
     @field_validator("genres", mode="before")
     @classmethod
     def parse_genres(cls, v):
-        """Parse genres from comma-separated string to list"""
+        """Parse genres from comma-separated string or list, sanitizing each entry"""
         if isinstance(v, str) and v:
-            return [g.strip() for g in v.split(",") if g.strip()]
-        if v is None:
+            items = [g.strip() for g in v.split(",") if g.strip()]
+        elif v is None:
             return []
-        return v
+        else:
+            items = []
+            for g in v:
+                if isinstance(g, str) and "," in g:
+                    items.extend(part.strip() for part in g.split(",") if part.strip())
+                elif isinstance(g, str) and g.strip():
+                    items.append(g.strip())
+        cleaned = [re.sub(r"[^a-zA-Z0-9\s\-'&]", "", g).strip() for g in items]
+        return [g for g in cleaned if g]
 
     @field_validator("genres")
     @classmethod
@@ -85,19 +98,12 @@ class BookUpdate(BaseModel):
         if not v:
             return v
 
-        # Max 10 genres
         if len(v) > 10:
-            raise ValueError("Maximum 10 genres allowed")
+            v = v[:10]
 
-        # Validate each genre
         for genre in v:
-            # Max 50 characters
             if len(genre) > 50:
                 raise ValueError(f"Genre '{genre}' is too long (max 50 characters)")
-
-            # Only alphanumeric, spaces, hyphens, apostrophes, ampersands
-            if not re.match(r"^[a-zA-Z0-9\s\-'&]+$", genre):
-                raise ValueError(f"Genre '{genre}' contains invalid characters")
 
         return v
 

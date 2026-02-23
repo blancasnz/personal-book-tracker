@@ -670,7 +670,7 @@ export const NATIONAL_BOOK_AWARD_WINNERS: CuratedBook[] = [
     isbn: "9780571143801",
     description: "This is the first complete collection of Flannery O'Connor's stories. This volume, which includes all the stories from A Good Man Is Hard to Find and Everything That Rises Must Converge, also contains several stories never before published in book form. Flannery O'Connor was a unique writer whose work embodies not only the tensions and contradictions of the American South but many of the obsessions and issues at the heart of modernity, and some of her best work is to be found in her stories.",
     page_count: 555,
-    genres: ["Short stories, American"],
+    genres: ["Short Stories"],
     published_year: 1990,
   },
   {
@@ -802,7 +802,7 @@ export const NATIONAL_BOOK_AWARD_WINNERS: CuratedBook[] = [
     isbn: "9780140282672",
     description: "Philip Roth won the National Book Award for Goodbye, Columbus, the story which gives this collection of stories its title. The story traces the love relationship of Neil, a young college boy, and Brenda, the spoilt but love-starved daughter of a wealthy manufacturer.",
     page_count: 275,
-    genres: ["Authors, American"],
+    genres: ["Fiction"],
     published_year: 1999,
   },
   {
@@ -857,7 +857,7 @@ export const NATIONAL_BOOK_AWARD_WINNERS: CuratedBook[] = [
     isbn: null,
     description: null,
     page_count: 456,
-    genres: ["World War, 1914-1918"],
+    genres: ["Historical Fiction"],
     published_year: 1954,
   },
   {

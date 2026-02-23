@@ -1,11 +1,9 @@
 import httpx
-from typing import List, Optional, Dict
+from typing import List, Optional
 from datetime import datetime, timedelta
 
 OPEN_LIBRARY_API = "https://openlibrary.org"
 OPEN_LIBRARY_SEARCH = f"{OPEN_LIBRARY_API}/search.json"
-OPEN_LIBRARY_WORKS = f"{OPEN_LIBRARY_API}/works"
-
 # Simple in-memory cache
 _cache = {}
 CACHE_DURATION = timedelta(hours=6)
@@ -185,33 +183,3 @@ def transform_open_library_edition(
         return None
 
 
-async def get_book_with_editions(title: str, author: str, google_book: dict) -> dict:
-    """
-    Combine Google Books data with Open Library editions
-    Returns the main book data plus available editions
-    """
-    # Get editions from Open Library
-    editions = await search_open_library_editions(title, author)
-
-    # If no editions found, create a default one from Google Books data
-    if not editions:
-        google_format = "unknown"
-        if google_book.get("page_count"):
-            google_format = "paperback"  # Default assumption
-
-        editions = [
-            {
-                "title": google_book.get("title"),
-                "author": google_book.get("author"),
-                "isbn": google_book.get("isbn"),
-                "cover_url": google_book.get("cover_url"),
-                "description": google_book.get("description"),
-                "published_year": google_book.get("published_year"),
-                "page_count": google_book.get("page_count"),
-                "genres": google_book.get("genres", []),
-                "format": google_format,
-                "edition": None,
-            }
-        ]
-
-    return {"main_book": google_book, "editions": editions}

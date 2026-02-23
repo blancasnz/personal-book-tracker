@@ -13,7 +13,7 @@ import { ReadingStatus } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-export const apiClient = axios.create({
+const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -43,19 +43,6 @@ export const searchPublicLists = async (query: string, limit: number = 50) => {
 export const getBookEditions = async (title: string, author: string) => {
   const response = await apiClient.get('/search/editions', {
     params: { title, author }
-  });
-  return response.data;
-};
-
-// Books
-export const getBooks = async (): Promise<Book[]> => {
-  const response = await apiClient.get('/books/');
-  return response.data;
-};
-
-export const searchBooks = async (query: string): Promise<Book[]> => {
-  const response = await apiClient.get('/books/search', {
-    params: { q: query }
   });
   return response.data;
 };
@@ -116,11 +103,6 @@ export const updateBook = async (bookId: number, update: Partial<BookCreate>) =>
 
 export const deleteList = async (listId: number) => {
   await apiClient.delete(`/lists/${listId}`);
-};
-
-export const getCurrentlyReading = async () => {
-  const response = await apiClient.get('/lists/currently-reading');
-  return response.data;
 };
 
 export const moveBookStatus = async (

@@ -216,7 +216,7 @@ export const TIME_100_NOVELS: CuratedBook[] = [
     isbn: "9782253113362",
     description: "\"Catch 22, l'Article 22, est un \" attrape-nigaud \" qui permet à un colonel américain d'imposer un nombre de missions sans cesse croissant à son escadrille de bombardiers basée dans une petite île de la Méditerranée pendant la Seconde Guerre mondiale. Yossaran, héros tragicomique de cette épopée burlesque, est décidé à tout tenter pour sauver sa peau : il estime que sa seule mission, quand il s'envole, consiste à atterrir vivant. Simuler la folie dans cet univers délirant lui paraît le meilleur moyen de tirer au flanc. Hélas, l'Article 22 stipule : \" Quiconque veut se dispenser d'aller au feu n'est pas réellement fou. \" Cette première œuvre de Joseph Heller compte parmi les meilleurs romans américains de l'après-guerre.\" [résumé éditeur]",
     page_count: 0,
-    genres: ["World War, 1939-1945"],
+    genres: ["Historical Fiction"],
     published_year: 2006,
   },
   {

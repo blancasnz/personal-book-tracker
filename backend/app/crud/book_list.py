@@ -41,17 +41,6 @@ def get_book_list(
     return book_list
 
 
-def get_book_lists(db: Session, skip: int = 0, limit: int = 100) -> List[BookList]:
-    """Get all lists, default lists first"""
-    return (
-        db.query(BookList)
-        .order_by(BookList.is_default.desc(), BookList.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
 def get_book_lists_summary(db: Session, skip: int = 0, limit: int = 100):
     """Get all lists with item counts (without loading all books)"""
     lists = (
@@ -173,37 +162,6 @@ def update_book_list_item(
     db.commit()
     db.refresh(db_item)
     return db_item
-
-
-def remove_book_from_list(db: Session, list_id: int, book_id: int) -> bool:
-    """Remove a book from a list"""
-    db_item = (
-        db.query(BookListItem)
-        .filter(BookListItem.book_list_id == list_id, BookListItem.book_id == book_id)
-        .first()
-    )
-
-    if not db_item:
-        return False
-
-    db.delete(db_item)
-    db.commit()
-    return True
-
-
-def get_books_by_status(
-    db: Session, status: ReadingStatus, skip: int = 0, limit: int = 100
-):
-    """Get all books with a specific status across all lists"""
-    items = (
-        db.query(BookListItem)
-        .filter(BookListItem.status == status)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-    return items
 
 
 # Default lists initialization
