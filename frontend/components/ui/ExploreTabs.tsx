@@ -10,6 +10,7 @@ export const TABS = [
   { id: "best-of", label: "Best Of All Time" },
   { id: "book-clubs", label: "Book Clubs & Picks" },
   { id: "genre", label: "Genre Awards" },
+  { id: "community", label: "Community Curations" },
 ] as const;
 
 export type TabId = (typeof TABS)[number]["id"];

@@ -11,6 +11,7 @@ import ExploreTabs, { TABS } from "./ui/ExploreTabs";
 import { TAB_CONFIG, ListConfig } from "@/data/exploreTabConfig";
 import { CURATED_LISTS, CuratedBook } from "@/data/lists";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { PublicListSearchResult, BookList } from "@/types";
 
 type SearchMode = "books" | "lists";
@@ -72,7 +73,7 @@ export default function BookSearch() {
   } = useQuery({
     queryKey: ["publicLists"],
     queryFn: getPublicLists,
-    enabled: searchMode === "lists" && !debouncedQuery,
+    enabled: searchMode === "lists" && !debouncedQuery && activeTab === "community",
   });
 
   const updateUrl = (params: { q?: string; tab?: string; mode?: string }) => {
@@ -277,52 +278,50 @@ export default function BookSearch() {
           <ExploreTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
           {/* Curated Tab Content */}
-          <div className="space-y-8">
-            {currentTabLists.map((listConfig) => {
-              const books = CURATED_LISTS[listConfig.listType] || [];
+          {activeTab !== "community" && (
+            <div className="space-y-8">
+              {currentTabLists.map((listConfig) => {
+                const books = CURATED_LISTS[listConfig.listType] || [];
 
-              return (
-                <div
-                  key={listConfig.listType}
-                  className="bg-white rounded-xl shadow-card p-6 border border-primary-100"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
-                      <span>{listConfig.icon || ""}</span> {listConfig.title}
-                    </h3>
-                    {listConfig.badge && (
-                      <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                        {listConfig.badge}
-                      </span>
-                    )}
+                return (
+                  <div
+                    key={listConfig.listType}
+                    className="bg-white rounded-xl shadow-card p-6 border border-primary-100"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-semibold text-pine-800 flex items-center gap-2">
+                        <span>{listConfig.icon || ""}</span> {listConfig.title}
+                      </h3>
+                      {listConfig.badge && (
+                        <span className="text-xs text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
+                          {listConfig.badge}
+                        </span>
+                      )}
+                    </div>
+                    <CuratedBookRow
+                      listType={listConfig.listType}
+                      title={listConfig.title}
+                      badgeLabel={listConfig.badge}
+                      showYear={listConfig.showYear}
+                      books={books}
+                      totalCount={books.length}
+                      maxBooks={10}
+                    />
                   </div>
-                  <CuratedBookRow
-                    listType={listConfig.listType}
-                    title={listConfig.title}
-                    badgeLabel={listConfig.badge}
-                    showYear={listConfig.showYear}
-                    books={books}
-                    totalCount={books.length}
-                    maxBooks={10}
-                  />
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
-          {/* Public Lists Section */}
-          <div className="mt-8 pt-6 border-t border-warm-200">
-            <h2 className="text-2xl font-bold text-pine-800 mb-6">
-              Public Lists
-            </h2>
+          {/* Community Curations Tab Content */}
+          {activeTab === "community" && (
+            <div className="space-y-4">
+              {publicListsLoading && (
+                <div className="text-center py-8 text-pine-500">Loading community curations...</div>
+              )}
 
-            {publicListsLoading && (
-              <div className="text-center py-8 text-pine-500">Loading public lists...</div>
-            )}
-
-            {publicLists && publicLists.length > 0 ? (
-              <div className="space-y-4">
-                {publicLists.map((list: BookList) => (
+              {publicLists && publicLists.length > 0 ? (
+                publicLists.map((list: BookList) => (
                   <div
                     key={list.id}
                     className="bg-white rounded-xl border border-primary-100 p-5"
@@ -361,16 +360,22 @@ export default function BookSearch() {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              !publicListsLoading && (
-                <div className="text-center py-8 text-pine-500">
-                  <p>No public lists yet. Make one of your lists public to share it!</p>
-                </div>
-              )
-            )}
-          </div>
+                ))
+              ) : (
+                !publicListsLoading && (
+                  <div className="text-center py-8 text-pine-500">
+                    <p>No community curations yet. Make one of your lists public to share it!</p>
+                    <Link
+                      href="/lists"
+                      className="inline-block mt-4 px-6 py-2.5 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 rounded-lg transition-all text-sm font-semibold shadow-sm"
+                    >
+                      Go to My Curations
+                    </Link>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       )}
 
