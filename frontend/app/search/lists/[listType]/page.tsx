@@ -15,17 +15,18 @@ import BookCard from "@/components/ui/BookCard";
 
 const BOOKS_PER_PAGE = 30;
 
-// Build a map of list types to their titles and metadata
+// Build a map of list types to their titles, metadata, and parent tab
 const LIST_METADATA: Record<
   string,
-  { title: string; badge?: string; showYear?: boolean }
+  { title: string; badge?: string; showYear?: boolean; tab: string }
 > = {};
-Object.values(TAB_CONFIG).forEach((lists) => {
+Object.entries(TAB_CONFIG).forEach(([tabId, lists]) => {
   lists.forEach((list) => {
     LIST_METADATA[list.listType] = {
       title: list.title,
       badge: list.badge,
       showYear: list.showYear,
+      tab: tabId,
     };
   });
 });
@@ -121,7 +122,7 @@ export default function ListsPage() {
           <div className="flex items-center justify-between relative">
             {/* Back to Discover - Left */}
             <button
-              onClick={() => router.push("/search")}
+              onClick={() => router.push(`/search?mode=lists&tab=${metadata.tab}`)}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               ← Back to Discover

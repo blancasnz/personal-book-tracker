@@ -124,7 +124,7 @@ export default function ReeseBookClubPage() {
           <div className="flex items-center justify-between relative">
             {/* Back to Discover - Left */}
             <button
-              onClick={() => router.push("/search")}
+              onClick={() => router.push("/search?mode=lists&tab=book-clubs")}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               &larr; Back to Discover
