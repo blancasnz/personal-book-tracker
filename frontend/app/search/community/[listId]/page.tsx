@@ -1,34 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { addExternalBookToDb } from "@/lib/api";
-import { Book, BookCreate } from "@/types";
+import { getPublicLists, addExternalBookToDb } from "@/lib/api";
+import { Book, BookCreate, BookList } from "@/types";
 import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
-import {
-  REESE_BOOK_CLUB_2023,
-  REESE_BOOK_CLUB_2020,
-  REESE_BOOK_CLUB_2017,
-} from "@/data/lists";
 import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
 import toast from "react-hot-toast";
-import BookCard from "@/components/ui/BookCard";
 
 const BOOKS_PER_PAGE = 30;
 
-const YEAR_TABS = [
-  { id: "2023-2026", label: "2023-2026", data: REESE_BOOK_CLUB_2023 },
-  { id: "2020-2022", label: "2020-2022", data: REESE_BOOK_CLUB_2020 },
-  { id: "2017-2019", label: "2017-2019", data: REESE_BOOK_CLUB_2017 },
-];
-
-export default function ReeseBookClubPage() {
+export default function CommunityListDetailPage() {
+  const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const listId = Number(params.listId);
 
-  const [activeTab, setActiveTab] = useState("2023-2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedBookForDetail, setSelectedBookForDetail] =
@@ -37,39 +26,24 @@ export default function ReeseBookClubPage() {
 
   const { copyList, isCopying, progress } = useCopyListToCurations();
 
-  const activeTabData = YEAR_TABS.find((tab) => tab.id === activeTab);
-  const listData = activeTabData?.data || [];
-  const allBooks = [...REESE_BOOK_CLUB_2023, ...REESE_BOOK_CLUB_2020, ...REESE_BOOK_CLUB_2017];
-
-  const books = listData.map((book, index) => ({
-    ...book,
-    id: -(index + 1),
-    awardYear: book.year,
-  }));
-
-  const addBookMutation = useMutation({
-    mutationFn: (book: BookCreate) => addExternalBookToDb(book),
-    onSuccess: (addedBook) => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      setSelectedBook(addedBook);
-    },
-    onError: (error: any) => {
-      if (error.response?.data?.detail?.includes("UNIQUE constraint")) {
-        toast.error("Book already in your library");
-      } else {
-        toast.error("Failed to add book");
-      }
-    },
+  const { data: publicLists, isLoading } = useQuery({
+    queryKey: ["publicLists"],
+    queryFn: getPublicLists,
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
+  const list = useMemo(
+    () => publicLists?.find((l: BookList) => l.id === listId) ?? null,
+    [publicLists, listId]
+  );
 
-  // Filter books by search query if provided
+  const books = useMemo(() => {
+    if (!list) return [];
+    return list.items.map((item) => ({
+      ...item.book,
+      id: item.book.id,
+    }));
+  }, [list]);
+
   const filteredBooks = searchQuery.trim()
     ? books.filter(
         (book) =>
@@ -78,10 +52,10 @@ export default function ReeseBookClubPage() {
       )
     : books;
 
-  // Paginate: show only visibleCount books
-  const visibleBooks = useMemo(() => {
-    return filteredBooks.slice(0, visibleCount);
-  }, [filteredBooks, visibleCount]);
+  const visibleBooks = useMemo(
+    () => filteredBooks.slice(0, visibleCount),
+    [filteredBooks, visibleCount]
+  );
 
   const hasMoreBooks = visibleCount < filteredBooks.length;
   const remainingBooks = filteredBooks.length - visibleCount;
@@ -90,31 +64,32 @@ export default function ReeseBookClubPage() {
     setVisibleCount((prev) => prev + BOOKS_PER_PAGE);
   };
 
-  // Reset visible count when search or tab changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setVisibleCount(BOOKS_PER_PAGE);
   };
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    setSearchQuery("");
-    setVisibleCount(BOOKS_PER_PAGE);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen gradient-soft flex items-center justify-center">
+        <p className="text-pine-500">Loading list...</p>
+      </div>
+    );
+  }
 
-  // Determine year range for the active tab
-  const years = listData
-    .filter((b) => b.year)
-    .map((b) => b.year as number)
-    .sort((a, b) => a - b);
-  const yearRange =
-    years.length > 0 ? `${years[0]} to ${years[years.length - 1]}` : null;
-
-  // Total books across all years
-  const totalBooks =
-    REESE_BOOK_CLUB_2023.length +
-    REESE_BOOK_CLUB_2020.length +
-    REESE_BOOK_CLUB_2017.length;
+  if (!list) {
+    return (
+      <div className="min-h-screen gradient-soft flex flex-col items-center justify-center gap-4">
+        <p className="text-pine-500">List not found.</p>
+        <button
+          onClick={() => router.push("/search?mode=lists&tab=community")}
+          className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
+        >
+          Back to Community Curations
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-soft">
@@ -122,30 +97,33 @@ export default function ReeseBookClubPage() {
       <div className="bg-white border-b border-primary-100 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between relative">
-            {/* Back to Discover - Left */}
+            {/* Back Button */}
             <button
-              onClick={() => router.push("/search")}
+              onClick={() => router.push("/search?mode=lists&tab=community")}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
-              &larr; Back to Discover
+              ← Back to Community
             </button>
 
             {/* Title - Center */}
             <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent mb-1">
-                Reese's Book Club
+                {list.name}
               </h1>
-              <span className="text-sm text-pine-600 bg-primary-50 px-3 py-1 rounded-full font-medium">
-                {totalBooks} picks since 2017
-              </span>
+              {list.description && (
+                <p className="text-sm text-pine-600 mt-0.5 max-w-md">
+                  {list.description}
+                </p>
+              )}
             </div>
 
             {/* Add to My Curations */}
             <button
               onClick={() =>
                 copyList({
-                  listName: "Reese's Book Club",
-                  curatedBooks: allBooks,
+                  listName: list.name,
+                  listDescription: list.description || undefined,
+                  communityItems: list.items,
                 })
               }
               disabled={isCopying}
@@ -160,36 +138,14 @@ export default function ReeseBookClubPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Year Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-white rounded-lg p-1 shadow-sm border border-primary-100">
-            {YEAR_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`px-6 py-2 rounded-md font-medium transition-all ${
-                  activeTab === tab.id
-                    ? "bg-primary-600 text-white shadow-sm"
-                    : "text-pine-600 hover:bg-primary-50"
-                }`}
-              >
-                {tab.label}
-                <span className="ml-2 text-xs opacity-75">
-                  ({tab.data.length})
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="mb-8">
+        <form onSubmit={(e) => e.preventDefault()} className="mb-8">
           <div className="flex gap-2">
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search within this period..."
+              placeholder="Search within this list..."
               className="flex-1 px-4 py-2 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-pine-900"
             />
             {searchQuery && (
@@ -213,7 +169,6 @@ export default function ReeseBookClubPage() {
             ) : (
               <>
                 Showing {visibleBooks.length} of {books.length} books
-                {yearRange && <span> from {yearRange}</span>}
               </>
             )}
           </p>
@@ -221,14 +176,45 @@ export default function ReeseBookClubPage() {
 
         {/* Books Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {visibleBooks.map((book, index) => (
-            <BookCard
-              key={index}
-              book={book}
-              onClickBook={(b) => setSelectedBookForDetail(b)}
-              onAddBook={(b) => addBookMutation.mutate(b)}
-              isAdding={addBookMutation.isPending}
-            />
+          {visibleBooks.map((book) => (
+            <div
+              key={book.id}
+              className="cursor-pointer group bg-white rounded-lg shadow-sm hover:shadow-card-hover transition-all overflow-hidden border border-primary-100"
+              onClick={() => setSelectedBookForDetail(book)}
+            >
+              <div className="relative h-52 flex items-center justify-center bg-warm-50 p-3">
+                {book.cover_url ? (
+                  <img
+                    src={book.cover_url}
+                    alt={book.title}
+                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-200 rounded-book book-cover-shadow"
+                  />
+                ) : (
+                  <span className="text-pine-400 text-sm">No cover</span>
+                )}
+
+                {/* Quick Add Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedBook(book);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary-50"
+                  title="Add to list"
+                >
+                  <span className="text-sm leading-none text-primary-600">+</span>
+                </button>
+              </div>
+
+              <div className="p-3">
+                <h4 className="text-sm font-semibold text-pine-900 line-clamp-2 mb-1">
+                  {book.title}
+                </h4>
+                <p className="text-xs text-pine-600 line-clamp-1">
+                  {book.author}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -247,14 +233,14 @@ export default function ReeseBookClubPage() {
         {/* No Results */}
         {filteredBooks.length === 0 && searchQuery && (
           <div className="text-center py-12 text-pine-500">
-            No books match "{searchQuery}" in this period.
+            No books match &quot;{searchQuery}&quot; in this list.
           </div>
         )}
 
         {/* Empty List */}
         {books.length === 0 && !searchQuery && (
           <div className="text-center py-12 text-pine-500">
-            No books found for this period.
+            This list has no books yet.
           </div>
         )}
       </div>

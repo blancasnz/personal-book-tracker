@@ -12,6 +12,7 @@ import {
   OPRAH_BOOK_CLUB_2010S,
   OPRAH_BOOK_CLUB_2000S,
 } from "@/data/lists";
+import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
@@ -34,8 +35,11 @@ export default function OprahBookClubPage() {
     useState<Book | null>(null);
   const [visibleCount, setVisibleCount] = useState(BOOKS_PER_PAGE);
 
+  const { copyList, isCopying, progress } = useCopyListToCurations();
+
   const activeTabData = DECADE_TABS.find((tab) => tab.id === activeTab);
   const listData = activeTabData?.data || [];
+  const allBooks = [...OPRAH_BOOK_CLUB_2020S, ...OPRAH_BOOK_CLUB_2010S, ...OPRAH_BOOK_CLUB_2000S];
 
   const books = listData.map((book, index) => ({
     ...book,
@@ -136,8 +140,21 @@ export default function OprahBookClubPage() {
               </span>
             </div>
 
-            {/* Empty spacer for balance */}
-            <div className="w-32"></div>
+            {/* Add to My Curations */}
+            <button
+              onClick={() =>
+                copyList({
+                  listName: "Oprah's Book Club",
+                  curatedBooks: allBooks,
+                })
+              }
+              disabled={isCopying}
+              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 disabled:opacity-60 rounded-lg transition-all text-sm font-medium shadow-sm"
+            >
+              {isCopying && progress
+                ? `Copying... (${progress.current}/${progress.total})`
+                : "Add to My Curations"}
+            </button>
           </div>
         </div>
       </div>

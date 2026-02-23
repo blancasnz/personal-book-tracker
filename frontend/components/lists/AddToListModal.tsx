@@ -159,6 +159,7 @@ export default function AddToListModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] });
       queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["publicLists"] });
       queryClient.invalidateQueries({ queryKey: ["currently-reading"] });
       queryClient.invalidateQueries({ queryKey: ["books"] });
       queryClient.invalidateQueries({ queryKey: ["book-check"] });

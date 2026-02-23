@@ -9,6 +9,7 @@ import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
 import { CURATED_LISTS } from "@/data/lists";
 import { TAB_CONFIG } from "@/data/exploreTabConfig";
+import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
@@ -43,6 +44,7 @@ export default function ListsPage() {
 
   const listData = CURATED_LISTS[listType] || [];
   const metadata = LIST_METADATA[listType] || { title: "Book List" };
+  const { copyList, isCopying, progress } = useCopyListToCurations();
 
   const books = listData.map((book, index) => ({
     ...book,
@@ -137,8 +139,21 @@ export default function ListsPage() {
               )}
             </div>
 
-            {/* Empty spacer for balance */}
-            <div className="w-32"></div>
+            {/* Add to My Curations */}
+            <button
+              onClick={() =>
+                copyList({
+                  listName: metadata.title,
+                  curatedBooks: listData,
+                })
+              }
+              disabled={isCopying}
+              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-500 text-white hover:from-primary-700 hover:to-secondary-600 disabled:opacity-60 rounded-lg transition-all text-sm font-medium shadow-sm"
+            >
+              {isCopying && progress
+                ? `Copying... (${progress.current}/${progress.total})`
+                : "Add to My Curations"}
+            </button>
           </div>
         </div>
       </div>

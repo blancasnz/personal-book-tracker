@@ -128,8 +128,10 @@ def add_book_to_list(
     db: Session, list_id: int, item: BookListItemCreate
 ) -> Optional[BookListItem]:
     """Add a book to a list"""
-    db_list = get_book_list(db, list_id)
-    if not db_list:
+    # Only check that the list exists — don't load items (avoids cascade
+    # conflicts when multiple books are added concurrently)
+    list_exists = db.query(BookList.id).filter(BookList.id == list_id).first()
+    if not list_exists:
         return None
 
     # Check if book already in list

@@ -324,7 +324,8 @@ export default function BookSearch() {
                 publicLists.map((list: BookList) => (
                   <div
                     key={list.id}
-                    className="bg-white rounded-xl border border-primary-100 p-5"
+                    className="bg-white rounded-xl border border-primary-100 p-5 cursor-pointer hover:shadow-card-hover transition-all"
+                    onClick={() => router.push(`/search/community/${list.id}`)}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -333,9 +334,11 @@ export default function BookSearch() {
                           <p className="text-sm text-pine-600 mt-0.5">{list.description}</p>
                         )}
                       </div>
-                      <span className="text-xs text-pine-500 bg-warm-100 px-2 py-1 rounded-full flex-shrink-0">
-                        {list.items.length} {list.items.length === 1 ? "book" : "books"}
-                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-pine-500 bg-warm-100 px-2 py-1 rounded-full">
+                          {list.items.length} {list.items.length === 1 ? "book" : "books"}
+                        </span>
+                      </div>
                     </div>
 
                     {list.items.length > 0 && (
@@ -359,6 +362,12 @@ export default function BookSearch() {
                         ))}
                       </div>
                     )}
+
+                    <div className="mt-2 text-right">
+                      <span className="text-xs text-primary-600 font-medium">
+                        View all →
+                      </span>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -479,7 +488,8 @@ export default function BookSearch() {
               {listSearchResults.results.map((result: PublicListSearchResult, index: number) => (
                 <div
                   key={`${result.list_id}-${result.matching_book.id}-${index}`}
-                  className="bg-white rounded-xl border border-primary-100 p-4 hover:shadow-card-hover transition-all"
+                  className="bg-white rounded-xl border border-primary-100 p-4 hover:shadow-card-hover transition-all cursor-pointer"
+                  onClick={() => router.push(`/search/community/${result.list_id}`)}
                 >
                   <div className="flex gap-4">
                     {result.matching_book.cover_url && (

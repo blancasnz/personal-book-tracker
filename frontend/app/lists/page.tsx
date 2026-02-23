@@ -17,6 +17,8 @@ export default function ListsPage() {
     mutationFn: (listId: number) => deleteList(listId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["list"] });
+      queryClient.invalidateQueries({ queryKey: ["publicLists"] });
       toast.success("List deleted");
       setSelectedListId(null);
     },
@@ -29,10 +31,8 @@ export default function ListsPage() {
   const handleDelete = (
     listId: number,
     listName: string,
-    isDefault: number,
-    e: React.MouseEvent
+    isDefault: number
   ) => {
-    e.stopPropagation();
     if (isDefault === 1) {
       toast.error("Cannot delete default lists");
       return;
@@ -164,9 +164,9 @@ export default function ListsPage() {
                           .filter((list) => list.is_default === 0)
                           .map((list) => (
                             <div key={list.id} className="relative group">
-                              <div
+                              <button
                                 onClick={() => setSelectedListId(list.id)}
-                                className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors text-sm ${
+                                className={`w-full text-left px-4 py-2.5 pr-10 rounded-lg transition-colors text-sm ${
                                   (selectedListId || defaultListId) === list.id
                                     ? "bg-primary-100 text-primary-800 font-medium"
                                     : "text-pine-700 hover:bg-primary-50"
@@ -181,28 +181,25 @@ export default function ListsPage() {
                                       </span>
                                     )}
                                   </span>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-pine-500">
-                                      {list.item_count || 0}
-                                    </span>
-                                    <button
-                                      onClick={(e) =>
-                                        handleDelete(
-                                          list.id,
-                                          list.name,
-                                          list.is_default,
-                                          e
-                                        )
-                                      }
-                                      disabled={deleteMutation.isPending}
-                                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity text-xs"
-                                      title="Delete list"
-                                    >
-                                      🗑️
-                                    </button>
-                                  </div>
+                                  <span className="text-xs text-pine-500">
+                                    {list.item_count || 0}
+                                  </span>
                                 </div>
-                              </div>
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDelete(
+                                    list.id,
+                                    list.name,
+                                    list.is_default
+                                  )
+                                }
+                                disabled={deleteMutation.isPending}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity text-xs p-1"
+                                title="Delete list"
+                              >
+                                🗑️
+                              </button>
                             </div>
                           ))}
                       </nav>
