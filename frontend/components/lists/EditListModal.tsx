@@ -39,6 +39,7 @@ export default function EditListModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["list", list.id] });
       queryClient.invalidateQueries({ queryKey: ["lists"] });
+      queryClient.invalidateQueries({ queryKey: ["publicLists"] });
       toast.success("List updated!");
       onClose();
     },

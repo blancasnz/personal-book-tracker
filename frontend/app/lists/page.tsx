@@ -154,13 +154,10 @@ export default function ListsPage() {
                       ))}
                   </nav>
 
-                  {/* Divider and label for user lists */}
+                  {/* Divider between default and user lists */}
+                  <div className="my-4 border-t border-primary-200" />
                   {lists.some((list) => list.is_default === 0) && (
                     <>
-                      <div className="my-4 border-t border-primary-200" />
-                      <p className="text-xs font-medium text-pine-500 uppercase tracking-wide mb-3 px-2">
-                        My Lists
-                      </p>
                       <nav className="space-y-1 mb-4">
                         {/* User Created Lists */}
                         {lists
