@@ -25,11 +25,13 @@ interface AddToListModalProps {
   existingLists?: ExistingListEntry[];
 }
 
+const EMPTY_LIST: ExistingListEntry[] = [];
+
 export default function AddToListModal({
   book,
   isOpen,
   onClose,
-  existingLists = [],
+  existingLists = EMPTY_LIST,
 }: AddToListModalProps) {
   const [selectedListIds, setSelectedListIds] = useState<Set<number>>(
     new Set()

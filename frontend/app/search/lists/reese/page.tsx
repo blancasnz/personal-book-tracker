@@ -48,7 +48,6 @@ export default function ReeseBookClubPage() {
     onSuccess: (addedBook) => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
       setSelectedBook(addedBook);
-      toast.success("Book added! Now add it to a list.");
     },
     onError: (error: any) => {
       if (error.response?.data?.detail?.includes("UNIQUE constraint")) {
