@@ -12,6 +12,7 @@ import { TAB_CONFIG } from "@/data/exploreTabConfig";
 import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 
 const BOOKS_PER_PAGE = 30;
 
@@ -122,7 +123,7 @@ export default function ListsPage() {
           <div className="flex items-center justify-between relative">
             {/* Back to Discover - Left */}
             <button
-              onClick={() => router.push(`/search?mode=lists&tab=${metadata.tab}`)}
+              onClick={() => router.back()}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               ← Back to Discover
@@ -253,6 +254,8 @@ export default function ListsPage() {
           showAddButton={true}
         />
       )}
+
+      <ScrollToTop />
     </div>
   );
 }

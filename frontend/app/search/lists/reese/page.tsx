@@ -13,6 +13,7 @@ import {
   REESE_BOOK_CLUB_2017,
 } from "@/data/lists";
 import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import toast from "react-hot-toast";
 import BookCard from "@/components/ui/BookCard";
 
@@ -124,7 +125,7 @@ export default function ReeseBookClubPage() {
           <div className="flex items-center justify-between relative">
             {/* Back to Discover - Left */}
             <button
-              onClick={() => router.push("/search?mode=lists&tab=book-clubs")}
+              onClick={() => router.back()}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               &larr; Back to Discover
@@ -277,6 +278,8 @@ export default function ReeseBookClubPage() {
           showAddButton={true}
         />
       )}
+
+      <ScrollToTop />
     </div>
   );
 }

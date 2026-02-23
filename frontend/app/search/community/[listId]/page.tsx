@@ -8,6 +8,7 @@ import { Book, BookList } from "@/types";
 import AddToListModal from "@/components/lists/AddToListModal";
 import BookDetailModal from "@/components/BookDetailModal";
 import { useCopyListToCurations } from "@/hooks/useCopyListToCurations";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import toast from "react-hot-toast";
 
 const BOOKS_PER_PAGE = 30;
@@ -98,7 +99,7 @@ export default function CommunityListDetailPage() {
           <div className="flex items-center justify-between relative">
             {/* Back Button */}
             <button
-              onClick={() => router.push("/search?mode=lists&tab=community")}
+              onClick={() => router.back()}
               className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               ← Back to Community
@@ -262,6 +263,8 @@ export default function CommunityListDetailPage() {
           showAddButton={true}
         />
       )}
+
+      <ScrollToTop />
     </div>
   );
 }

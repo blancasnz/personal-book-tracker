@@ -51,14 +51,12 @@ export default function BookPage({
           <div className="flex items-center justify-between relative mb-4">
             {/* Back link - Left */}
             <div className="w-40">
-              {searchQuery && (
-                <Link
-                  href={`/search?q=${encodeURIComponent(searchQuery)}`}
-                  className="text-pine-600 hover:text-pine-800 font-medium text-sm"
-                >
-                  ← Back to results
-                </Link>
-              )}
+              <button
+                onClick={() => router.back()}
+                className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                {searchQuery ? "← Back to results" : "← Back"}
+              </button>
             </div>
 
             {/* Title - Center */}
