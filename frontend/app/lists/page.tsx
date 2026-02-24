@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getLists, deleteList } from "@/lib/api";
 import CreateListModal from "@/components/lists/CreateListModal";
 import ListDetail from "@/components/lists/ListDetail";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
-export default function ListsPage() {
+function ListsPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedListId, setSelectedListId] = useState<number | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const listParam = searchParams.get("list");
+  const selectedListId = listParam ? parseInt(listParam) : null;
   const queryClient = useQueryClient();
+
+  const handleSelectList = (listId: number) => {
+    router.replace(`/lists?list=${listId}`, { scroll: false });
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (listId: number) => deleteList(listId),
@@ -20,7 +28,7 @@ export default function ListsPage() {
       queryClient.invalidateQueries({ queryKey: ["list"] });
       queryClient.invalidateQueries({ queryKey: ["publicLists"] });
       toast.success("List deleted");
-      setSelectedListId(null);
+      router.replace("/lists", { scroll: false });
     },
     onError: (error) => {
       console.error("Error deleting list:", error);
@@ -136,7 +144,7 @@ export default function ListsPage() {
                       .map((list) => (
                         <div key={list!.id} className="relative group">
                           <button
-                            onClick={() => setSelectedListId(list!.id)}
+                            onClick={() => handleSelectList(list!.id)}
                             className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors text-sm ${
                               (selectedListId || defaultListId) === list!.id
                                 ? "bg-primary-100 text-primary-800 font-medium"
@@ -165,7 +173,7 @@ export default function ListsPage() {
                           .map((list) => (
                             <div key={list.id} className="relative group">
                               <button
-                                onClick={() => setSelectedListId(list.id)}
+                                onClick={() => handleSelectList(list.id)}
                                 className={`w-full text-left px-4 py-2.5 pr-10 rounded-lg transition-colors text-sm ${
                                   (selectedListId || defaultListId) === list.id
                                     ? "bg-primary-100 text-primary-800 font-medium"
@@ -261,5 +269,13 @@ export default function ListsPage() {
         onClose={() => setIsModalOpen(false)}
       />
     </main>
+  );
+}
+
+export default function ListsPage() {
+  return (
+    <Suspense>
+      <ListsPageContent />
+    </Suspense>
   );
 }

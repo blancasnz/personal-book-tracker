@@ -25,6 +25,7 @@ export default function RandomBookPicker({
   const [pickedBook, setPickedBook] = useState<BookListItem | null>(null);
   const [isRevealing, setIsRevealing] = useState(false);
   const [showAddToList, setShowAddToList] = useState(false);
+  const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [availableGenres, setAvailableGenres] = useState<string[]>([]);
 
@@ -47,6 +48,7 @@ export default function RandomBookPicker({
 
   const pickBookMutation = useMutation({
     mutationFn: () => {
+      setNoMatchMessage(null);
       const filters: any = {};
       if (maxPages > 0) filters.max_pages = maxPages;
       if (minPages > 0) filters.min_pages = minPages;
@@ -63,7 +65,9 @@ export default function RandomBookPicker({
     },
     onError: (error: any) => {
       if (error.response?.status === 404) {
-        toast.error("No books match your filters!");
+        setNoMatchMessage(
+          "No books in this list match your filters. Try adjusting or clearing your filters."
+        );
       } else {
         toast.error("Failed to pick a book");
       }
@@ -77,6 +81,7 @@ export default function RandomBookPicker({
 
   const handleReset = () => {
     setPickedBook(null);
+    setNoMatchMessage(null);
     setMaxPages(0);
     setMinPages(0);
     setSelectedGenre("");
@@ -171,6 +176,13 @@ export default function RandomBookPicker({
                   </div>
                 </div>
               </div>
+
+              {/* No match message */}
+              {noMatchMessage && (
+                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-center">
+                  <p className="font-medium">{noMatchMessage}</p>
+                </div>
+              )}
 
               {/* Pick Button */}
               <button
