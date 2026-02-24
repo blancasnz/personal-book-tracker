@@ -56,6 +56,16 @@ export default function Home() {
               )}
             </div>
           </div>
+
+          {/* About Link */}
+          <p className="text-center text-lg text-pine-800 mt-8">
+            <Link
+              href="/about"
+              className="text-primary-600 hover:text-primary-700 underline decoration-2 underline-offset-4 transition-colors"
+            >
+              About the developer
+            </Link>
+          </p>
         </div>
       </div>
     </main>

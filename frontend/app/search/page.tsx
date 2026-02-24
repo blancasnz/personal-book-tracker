@@ -41,8 +41,12 @@ export default function SearchPage() {
       <div className="bg-white border-b border-primary-100 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between relative">
-            {/* Empty spacer for balance */}
-            <div className="w-40"></div>
+            <Link
+              href="/"
+              className="px-4 py-2 bg-white border border-primary-200 text-pine-700 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
+            >
+              ← Home
+            </Link>
 
             {/* Title - Center */}
             <Link
