@@ -28,7 +28,6 @@ import { HUGO_WINNERS } from "./hugoWinners";
 import { NEBULA_WINNERS } from "./nebulaWinners";
 import { NATIONAL_BOOK_AWARD_WINNERS } from "./nationalBookAward";
 // Import "best of" lists
-import { TIME_100_NOVELS } from "./time100Novels";
 import { NYT_21ST_CENTURY_READERS } from "./nyt21stCentury";
 import { NYT_21ST_CENTURY_CRITICS } from "./nyt21stCenturyCritics";
 import { NPR_SCIFI_FANTASY } from "./nprSciFiFantasy";
@@ -61,7 +60,6 @@ export const CURATED_LISTS: Record<string, CuratedBook[]> = {
   "national-book-award": NATIONAL_BOOK_AWARD_WINNERS,
 
   // Best Of All Time
-  "time-100": TIME_100_NOVELS,
   "nyt-21st-century-readers": NYT_21ST_CENTURY_READERS,
   "nyt-21st-century-critics": NYT_21ST_CENTURY_CRITICS,
   "npr-scifi-fantasy": NPR_SCIFI_FANTASY,
@@ -96,7 +94,6 @@ export {
   HUGO_WINNERS,
   NEBULA_WINNERS,
   NATIONAL_BOOK_AWARD_WINNERS,
-  TIME_100_NOVELS,
   NYT_21ST_CENTURY_READERS,
   NYT_21ST_CENTURY_CRITICS,
   NPR_SCIFI_FANTASY,

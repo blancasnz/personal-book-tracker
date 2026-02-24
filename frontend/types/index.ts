@@ -40,6 +40,8 @@ export interface BookListItem {
   rating?: number | null;
   is_favorite: number;
   current_page: number;
+  award_year?: number | null;
+  rank?: number | null;
   book: Book;
 }
 
@@ -91,6 +93,8 @@ export interface BookListItemCreate {
   status?: ReadingStatus;
   rating?: number;
   is_favorite?: number;
+  award_year?: number;
+  rank?: number;
 }
 
 export interface BookListItemUpdate {
@@ -99,4 +103,6 @@ export interface BookListItemUpdate {
   rating?: number;
   is_favorite?: number;
   current_page?: number;
+  award_year?: number;
+  rank?: number;
 }

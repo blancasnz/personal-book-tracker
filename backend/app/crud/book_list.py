@@ -29,9 +29,29 @@ def get_book_list(
         .filter(BookListItem.book_list_id == list_id)
     )
 
-    # Sort by date added
+    # Sort by date added or award year
     if sort_order == "asc":
         items_query = items_query.order_by(BookListItem.added_at.asc())
+    elif sort_order == "award_year_desc":
+        items_query = items_query.order_by(
+            BookListItem.award_year.desc().nulls_last(),
+            BookListItem.added_at.desc()
+        )
+    elif sort_order == "award_year_asc":
+        items_query = items_query.order_by(
+            BookListItem.award_year.asc().nulls_last(),
+            BookListItem.added_at.desc()
+        )
+    elif sort_order == "rank_asc":
+        items_query = items_query.order_by(
+            BookListItem.rank.asc().nulls_last(),
+            BookListItem.added_at.asc()
+        )
+    elif sort_order == "rank_desc":
+        items_query = items_query.order_by(
+            BookListItem.rank.desc().nulls_last(),
+            BookListItem.added_at.desc()
+        )
     else:  # desc (default - newest first)
         items_query = items_query.order_by(BookListItem.added_at.desc())
 

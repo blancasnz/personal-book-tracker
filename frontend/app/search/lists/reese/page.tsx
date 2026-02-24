@@ -164,6 +164,7 @@ export default function ReeseBookClubPage() {
               copyList({
                 listName: "Reese's Book Club",
                 curatedBooks: allBooks,
+                showYear: true,
               })
             }
             disabled={isCopying}

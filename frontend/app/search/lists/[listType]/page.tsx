@@ -165,6 +165,7 @@ export default function ListsPage() {
               copyList({
                 listName: metadata.title,
                 curatedBooks: listData,
+                showYear: metadata.showYear,
               })
             }
             disabled={isCopying}

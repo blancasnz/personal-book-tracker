@@ -164,6 +164,7 @@ export default function OprahBookClubPage() {
               copyList({
                 listName: "Oprah's Book Club",
                 curatedBooks: allBooks,
+                showYear: true,
               })
             }
             disabled={isCopying}

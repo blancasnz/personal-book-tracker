@@ -22,6 +22,7 @@ interface UseCopyListToCurationsOptions {
   listDescription?: string;
   curatedBooks?: CuratedBook[];
   communityItems?: BookListItem[];
+  showYear?: boolean;
 }
 
 export function useCopyListToCurations() {
@@ -35,6 +36,7 @@ export function useCopyListToCurations() {
       listDescription,
       curatedBooks,
       communityItems,
+      showYear,
     }: UseCopyListToCurationsOptions) => {
       setIsCopying(true);
 
@@ -57,58 +59,51 @@ export function useCopyListToCurations() {
 
         let completed = 0;
 
-        // 2. Process curated books in batches
+        // 2. Process curated books sequentially to preserve list order
         if (curatedBooks && curatedBooks.length > 0) {
-          for (let i = 0; i < curatedBooks.length; i += BATCH_SIZE) {
-            const batch = curatedBooks.slice(i, i + BATCH_SIZE);
-            const results = await Promise.allSettled(
-              batch.map(async (book) => {
-                let bookId: number;
+          for (const book of curatedBooks) {
+            try {
+              let bookId: number;
 
-                // Check if book already exists in the DB (by ISBN or title/author)
-                // to avoid creating duplicates for books without ISBN
-                const existing = await checkBookExists(
-                  book.isbn || undefined,
-                  book.title,
-                  book.author
-                );
+              // Check if book already exists in the DB (by ISBN or title/author)
+              const existing = await checkBookExists(
+                book.isbn || undefined,
+                book.title,
+                book.author
+              );
 
-                if (existing?.exists && existing?.book?.id) {
-                  bookId = existing.book.id;
-                } else {
-                  // Book doesn't exist yet — add it
-                  const added = await addExternalBookToDb({
-                    title: book.title,
-                    author: book.author,
-                    isbn: book.isbn || undefined,
-                    cover_url: book.cover_url || undefined,
-                    description: book.description || undefined,
-                    published_year: book.published_year || undefined,
-                    page_count: book.page_count || undefined,
-                    genres: book.genres,
-                  });
-                  bookId = added.id;
-                }
-
-                await addBookToList(newList.id, {
-                  book_id: bookId,
-                  status: "to_read",
+              if (existing?.exists && existing?.book?.id) {
+                bookId = existing.book.id;
+              } else {
+                // Book doesn't exist yet — add it
+                const added = await addExternalBookToDb({
+                  title: book.title,
+                  author: book.author,
+                  isbn: book.isbn || undefined,
+                  cover_url: book.cover_url || undefined,
+                  description: book.description || undefined,
+                  published_year: book.published_year || undefined,
+                  page_count: book.page_count || undefined,
+                  genres: book.genres,
                 });
-              })
-            );
-
-            // Log any failures for debugging
-            results.forEach((r, idx) => {
-              if (r.status === "rejected") {
-                const failedBook = batch[idx];
-                console.error(
-                  `Failed to copy "${failedBook.title}" by ${failedBook.author}:`,
-                  JSON.stringify(r.reason?.response?.data ?? r.reason?.message ?? r.reason)
-                );
+                bookId = added.id;
               }
-            });
 
-            completed += results.filter((r) => r.status === "fulfilled").length;
+              await addBookToList(newList.id, {
+                book_id: bookId,
+                status: "to_read",
+                ...(showYear && book.year ? { award_year: book.year } : {}),
+                ...(book.rank ? { rank: book.rank } : {}),
+              });
+
+              completed++;
+            } catch (err: any) {
+              console.error(
+                `Failed to copy "${book.title}" by ${book.author}:`,
+                JSON.stringify(err?.response?.data ?? err?.message ?? err)
+              );
+            }
+
             setProgress({ current: completed, total });
           }
         }

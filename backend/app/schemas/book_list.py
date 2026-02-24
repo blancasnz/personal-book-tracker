@@ -21,6 +21,8 @@ class BookListItemBase(BaseModel):
     rating: Optional[int] = Field(None, ge=1, le=5)
     is_favorite: int = 0
     current_page: int = 0
+    award_year: Optional[int] = None
+    rank: Optional[int] = None
 
 
 class BookListItemCreate(BookListItemBase):
@@ -33,6 +35,8 @@ class BookListItemUpdate(BaseModel):
     rating: Optional[int] = Field(None, ge=1, le=5)
     is_favorite: Optional[int] = None
     current_page: Optional[int] = Field(None, ge=0)
+    award_year: Optional[int] = None
+    rank: Optional[int] = None
 
 
 class BookListItem(BookListItemBase):

@@ -6,7 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import StatusBadge from "../ui/StatusBadge";
 import FavoriteHeart from "../ui/FavoriteHeart";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import UpdateStatusModal from "./UpdateStatusModal";
 import { Book, BookListItem } from "@/types";
 import BookDetailModal from "../BookDetailModal";
@@ -31,7 +31,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [sortNewest, setSortNewest] = useState(true);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [editGenresBook, setEditGenresBook] = useState<{
     id: number;
@@ -39,14 +39,49 @@ export default function ListDetail({ listId }: ListDetailProps) {
     genres: string[];
   } | null>(null);
 
+  // Single fetch — always get all items, sort client-side
   const {
     data: list,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["list", listId, sortOrder],
-    queryFn: () => getList(listId, sortOrder),
+    queryKey: ["list", listId],
+    queryFn: () => getList(listId),
   });
+
+  // Detect list type and sort items client-side
+  const sortedItems = useMemo(() => {
+    if (!list || list.items.length === 0) return [];
+
+    const items = [...list.items];
+    const hasRanks = items.some((item) => item.rank);
+    const hasAwardYears = items.some((item) => item.award_year);
+
+    if (hasRanks) {
+      // Ranked list: newest = #1 first (asc), oldest = last rank first (desc)
+      items.sort((a, b) => {
+        const aRank = a.rank ?? Infinity;
+        const bRank = b.rank ?? Infinity;
+        return sortNewest ? aRank - bRank : bRank - aRank;
+      });
+    } else if (hasAwardYears) {
+      // Award year list: newest = highest year first, oldest = lowest year first
+      items.sort((a, b) => {
+        const aYear = a.award_year ?? (sortNewest ? -Infinity : Infinity);
+        const bYear = b.award_year ?? (sortNewest ? -Infinity : Infinity);
+        return sortNewest ? bYear - aYear : aYear - bYear;
+      });
+    } else {
+      // Default: newest = most recently added, oldest = earliest added
+      items.sort((a, b) => {
+        const aTime = new Date(a.added_at).getTime();
+        const bTime = new Date(b.added_at).getTime();
+        return sortNewest ? bTime - aTime : aTime - bTime;
+      });
+    }
+
+    return items;
+  }, [list, sortNewest]);
 
   const handleRemoveBook = async (bookId: number, bookTitle: string) => {
     if (
@@ -170,21 +205,21 @@ export default function ListDetail({ listId }: ListDetailProps) {
       </div>
 
       {/* Sort Toggle */}
-      {list && list.items.length > 0 && (
+      {sortedItems.length > 0 && (
         <div className="mb-6 flex justify-end">
           <button
-            onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+            onClick={() => setSortNewest(!sortNewest)}
             className="px-4 py-2 bg-warm-200 hover:bg-primary-200 text-pine-700 rounded-lg transition-colors flex items-center gap-2 text-sm"
           >
-            {sortOrder === "desc" ? "↓ Newest First" : "↑ Oldest First"}
+            {sortNewest ? "↓ Newest First" : "↑ Oldest First"}
           </button>
         </div>
       )}
 
       {/* Books Grid */}
-      {list.items.length > 0 ? (
+      {sortedItems.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {list.items.map((item) => (
+          {sortedItems.map((item) => (
             <div
               key={item.id}
               className="bg-white border border-primary-100 rounded-lg p-3 hover:shadow-card-hover transition-all"
@@ -205,7 +240,7 @@ export default function ListDetail({ listId }: ListDetailProps) {
               >
                 {item.book.cover_url && (
                   <div
-                    className="mb-2 rounded-lg flex items-center justify-center"
+                    className="relative mb-2 rounded-lg flex items-center justify-center"
                     style={{ height: "200px" }}
                   >
                     <img
@@ -213,6 +248,16 @@ export default function ListDetail({ listId }: ListDetailProps) {
                       alt={item.book.title}
                       className="max-h-full max-w-full object-contain rounded-book book-cover-shadow"
                     />
+                    {item.rank && (
+                      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                        #{item.rank}
+                      </div>
+                    )}
+                    {!item.rank && item.award_year && (
+                      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                        {item.award_year}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -335,8 +380,10 @@ export default function ListDetail({ listId }: ListDetailProps) {
                   </div>
                 )}
 
-                {item.book.published_year && (
+                {(item.rank || item.award_year || item.book.published_year) && (
                   <p className="text-pine-400 text-xs mb-2">
+                    {item.rank && `#${item.rank} • `}
+                    {!item.rank && item.award_year && `Award: ${item.award_year} • `}
                     {item.book.published_year &&
                       `Published: ${item.book.published_year} • `}
                     Added: {new Date(item.added_at).toLocaleDateString()}
