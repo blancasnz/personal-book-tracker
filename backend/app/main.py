@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
 
 from app.database import get_db, Base, engine
 from app.routers import books, lists, search, nyt
@@ -28,9 +29,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Book Tracker API", version="1.0.0", lifespan=lifespan)
 
+origins = [
+    "http://localhost:3000",
+]
+
+frontend_url = os.environ.get("FRONTEND_URL")
+if frontend_url:
+    origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
