@@ -28,6 +28,8 @@ export default function ListDetail({ listId }: ListDetailProps) {
   const [selectedItem, setSelectedItem] = useState<BookListItem | null>(null);
   const [selectedBookForDetail, setSelectedBookForDetail] =
     useState<Book | null>(null);
+  const [selectedBookListItem, setSelectedBookListItem] =
+    useState<BookListItem | null>(null);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRandomPickerOpen, setIsRandomPickerOpen] = useState(false);
@@ -235,7 +237,10 @@ export default function ListDetail({ listId }: ListDetailProps) {
 
               {/* Clickable area */}
               <div
-                onClick={() => setSelectedBookForDetail(item.book)}
+                onClick={() => {
+                  setSelectedBookForDetail(item.book);
+                  setSelectedBookListItem(item);
+                }}
                 className="cursor-pointer"
               >
                 {item.book.cover_url && (
@@ -415,8 +420,12 @@ export default function ListDetail({ listId }: ListDetailProps) {
       {selectedBookForDetail && (
         <BookDetailModal
           book={selectedBookForDetail}
+          bookListItem={selectedBookListItem ?? undefined}
           isOpen={!!selectedBookForDetail}
-          onClose={() => setSelectedBookForDetail(null)}
+          onClose={() => {
+            setSelectedBookForDetail(null);
+            setSelectedBookListItem(null);
+          }}
         />
       )}
       {isEditModalOpen && (

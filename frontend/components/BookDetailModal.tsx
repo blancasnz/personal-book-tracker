@@ -40,6 +40,10 @@ export default function BookDetailModal({
   const [currentStatus, setCurrentStatus] = useState<ReadingStatus | undefined>(
     bookListItem?.status
   );
+  const [currentNotes, setCurrentNotes] = useState<string>(
+    bookListItem?.notes ?? ""
+  );
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [currentRating, setCurrentRating] = useState<number | undefined>(
     bookListItem?.rating ?? undefined
   );
@@ -51,6 +55,8 @@ export default function BookDetailModal({
   useEffect(() => {
     setCurrentStatus(bookListItem?.status);
     setCurrentRating(bookListItem?.rating ?? undefined);
+    setCurrentNotes(bookListItem?.notes ?? "");
+    setIsEditingNotes(false);
   }, [bookListItem]);
 
   // Lock body scroll when modal is open
@@ -222,14 +228,66 @@ export default function BookDetailModal({
                 )}
 
                 {/* Notes - from bookListItem */}
-                {bookListItem?.notes && (
+                {bookListItem && (
                   <div>
-                    <span className="text-sm font-medium text-pine-600 block mb-2">
-                      Your Notes:
-                    </span>
-                    <p className="text-pine-700 bg-primary-50 p-3 rounded-lg italic border border-primary-100">
-                      "{bookListItem.notes}"
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-pine-600">
+                        Your Notes:
+                      </span>
+                      {!isEditingNotes && (
+                        <button
+                          onClick={() => setIsEditingNotes(true)}
+                          className="text-xs text-primary-600 hover:text-primary-800"
+                        >
+                          {currentNotes ? "Edit" : "+ Add note"}
+                        </button>
+                      )}
+                    </div>
+                    {isEditingNotes ? (
+                      <div>
+                        <textarea
+                          value={currentNotes}
+                          onChange={(e) => setCurrentNotes(e.target.value)}
+                          rows={3}
+                          className="w-full p-3 border border-primary-200 rounded-lg text-pine-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+                          placeholder="Add your thoughts about this book..."
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateBookInList(
+                                  bookListItem.book_list_id,
+                                  bookListItem.book.id,
+                                  { notes: currentNotes.trim() || undefined }
+                                );
+                                setIsEditingNotes(false);
+                                queryClient.invalidateQueries({ queryKey: ["list"] });
+                                toast.success("Notes saved!");
+                              } catch {
+                                toast.error("Failed to save notes");
+                              }
+                            }}
+                            className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCurrentNotes(bookListItem.notes ?? "");
+                              setIsEditingNotes(false);
+                            }}
+                            className="px-3 py-1.5 text-xs text-pine-600 hover:text-pine-800"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : currentNotes ? (
+                      <p className="text-pine-700 bg-primary-50 p-3 rounded-lg italic border border-primary-100">
+                        "{currentNotes}"
+                      </p>
+                    ) : null}
                   </div>
                 )}
 
